@@ -1,0 +1,14 @@
+{% extends "form_base.html" %}
+
+{% block content %}
+<div class="form">
+    <h2>Login</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+        {{ form.username.label }} {{ form.username() }} <br>
+        {{ form.password.label }} {{ form.password() }} <br>
+        {{ form.submit() }}
+    </form>
+    <a href="{{ url_for('views.register') }}">Create an account</a>
+</div>
+{% endblock %}

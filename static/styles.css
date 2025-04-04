@@ -1,0 +1,1073 @@
+body {
+    font-family: 'Inter', 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    background-color: hsl(120, 40%, 96%);
+    overflow-x: hidden;
+}
+
+img:not(.noInvert).dark-mode {
+    filter: invert(100%);
+}
+
+input[type="image"].dark-mode {
+    filter: invert(100%);
+}
+
+.center-vertical {
+    display: flex;
+    align-items: center;
+}
+
+.text {
+    all: unset;
+    color: black;
+}
+
+.text.dark-mode {
+    color: white;
+}
+
+.topbar.dark-mode img {
+    filter: none;
+}
+
+body.dark-mode {
+    background-color: #121212;
+    color: white;
+}
+
+html {
+    min-height: 100%;
+    position:relative;
+}
+
+
+.main {
+    position: absolute;
+    top: 65px;
+    left: 52px;
+}
+
+.home {
+    position: absolute;
+    top: 185px;
+    left: 120px;
+}
+
+.home .subjects {
+    margin-left: 0px;
+    transform: none;
+    grid-template-columns: repeat(2, 1fr);
+    top: 20px;
+    padding: 0px;
+}
+
+.home h1 {
+    all: unset;
+    font-size: 32px;
+}
+
+.home .sub-panel {
+    position: relative;
+    left: -15px;
+    
+    width: calc(331px * 3);
+    min-height: 200px;
+}
+
+.welcome {
+    position: absolute;
+    top: 75px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: max-content;
+    color: #585858;
+    font-size: 24px;
+    z-index: 1000;
+}
+
+.welcome.dark-mode {
+    color: #bbbbbb;
+}
+
+.form h2 {
+    text-align: center;
+    color: #585858;
+    font-size: 24px;
+}
+
+.form h2.dark-mode {
+    color: #d8d8d8;
+}
+
+.alert {
+    display: grid;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.alert-danger {
+    color: red;
+}
+
+.alert-success {
+    color: green;
+}
+
+.alert-default {
+    color: black;
+}
+
+.alert-default.dark-mode {
+    color: white;
+}
+
+.form {
+    display: grid;
+    align-items: center;
+    justify-content: center;
+    margin-top: 75px;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:visited {
+    color: #0000EE;
+}
+
+input { 
+    width: 100%;
+    padding: 12px 20px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    border-radius: 8px;
+}
+
+input.dark-mode {
+    border: 1px solid #6c6c6c;
+}
+
+input[type="submit"]:hover {
+    cursor: pointer;
+}
+
+.logo {
+    position: relative;
+    left: 5px;
+    top: 5px;
+    height: 50px;
+    width: 50px;
+}
+
+.icon {
+    height: 32px;
+    width: 32px;
+}
+
+.topbar {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    height: 65px;
+    width: 100%;
+    background-color: hsl(120, 47%, 49%);
+    margin-bottom: 10px;
+    box-shadow: 0.1px 0 2px 0.5px #999;
+
+    z-index: 1001;
+}
+
+.topbar-right {
+    transform: translateY(50%);
+    margin-right: 10px;
+    float: right;
+}
+
+.topbar-right > * {
+    margin-left: 10px;
+}
+
+.topbar.dark-mode {
+    box-shadow: 0.1px 0 2px 0.5px #1b1b1b;
+}
+
+.sidebar {
+    position: fixed;
+    transition: width 0.1s ease;
+    top: 65px;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    overflow: hidden;
+    background-color: hsl(120, 60%, 94%);
+    
+    z-index: 1000;
+}
+
+.sidebar.dark-mode {
+    background-color: #101010;
+}
+
+.sidebar-text {
+    position: relative;
+    font-size: 23px;
+    white-space: nowrap;
+    bottom: -3px;
+}
+
+.sidebar-icon {
+    fill: black;
+    width: 32px;
+    height: 32px;
+}
+
+.sidebar-icon.dark-mode {
+    filter: invert(90%);
+}
+
+.main-sidebar-icon {
+    fill: black;
+    font-size: 32px !important;
+    margin-left: 10px;
+    margin-top: 25px;
+    cursor: pointer;
+}
+
+.main-sidebar-icon.dark-mode {
+    filter: invert(90%);
+}
+
+.back-icon {
+    fill: black;
+    font-size: 32px !important;
+    margin-left: 3px;
+    margin-top: 82px;
+    cursor: pointer;
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    position: relative;
+    color: inherit;
+    text-decoration: none;
+    background-color: transparent;
+    width: calc(100% - 20px);
+    border-radius: 10px;
+    border: none;
+    outline: none;
+    padding: 8px 5px;
+    gap: 10px;
+}
+
+.sidebar-selected {
+    background-color: hsl(120, 50%, 85%) !important;
+    pointer-events: none;
+}
+
+.sidebar-selected.dark-mode{
+    background-color: hsl(120, 1%, 12%) !important;
+}
+
+li:has(> .sidebar-selected) {
+    cursor: pointer;
+}
+
+.sidebar-link:visited {
+    color: inherit;
+}
+
+.sidebar-link:hover {
+    text-decoration: none;
+    border: 1px solid hsl(0, 0%, 80%);
+    background-color: white;
+}
+
+.sidebar-link:hover.dark-mode{
+    border: 1.6px solid hsl(0, 0%, 10%);
+    background-color: black;
+}
+
+.sidebar-link:focus {
+    outline: none;   
+}
+
+.sidebar-toggle {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    outline: none;
+}
+
+.sidebar ul {
+    list-style: none;
+    display: none;
+    margin-left: -30px;
+}
+
+.sidebar li {
+    margin: 10px 0;
+}
+
+.sidebar.collapsed {
+    width: 52px;
+}
+
+.sidebar.expanded {
+    width: 250px;
+}
+
+.sidebar.expanded ul {
+    display: block;
+}
+
+.button {
+    position: relative;
+    display: inline-block;
+    align-items: center;
+    justify-content: center;
+    color: inherit;
+    text-decoration: none;
+    background-color: transparent;
+    border-radius: 10px;
+    border: none;
+    outline: none;
+}
+
+.button:visited {
+    color: inherit;    
+}
+
+.button:hover {
+    text-decoration: none;
+    border: 1.6px solid hsl(0, 0%, 80%);
+    background-color: white;
+}
+    
+.button:focus {
+    outline: none;   
+}
+
+.subjects {
+    top: 80px !important;
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: unset;
+    gap: 10px;
+    padding: 10px !important;
+    min-width: calc(331px * 3);
+    min-height: calc(170px * 2);
+}
+
+.subject-box {
+    display: grid;
+    position: relative;
+    background-color: hsl(120, 33%, 98%);
+    border-radius: 10px;
+    border-color: hsl(0, 0%, 61%);
+    color: black;
+    border-width: 2px;
+    border-style: solid;
+    width: 320px;
+    height: 160px;
+}
+
+.subject-box.dark-mode{
+    background-color: hsl(120, 2%, 10%);
+    border-color: hsl(0, 0%, 15%);
+    color: white;
+}
+
+.subject-box-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    
+    row-gap: 3px;
+}
+
+.subject-box-grid .title {
+    all: unset;
+    text-transform: uppercase;
+    color: inherit;
+    font-size: 26px;
+    font-weight: 10;
+    margin: 14px 10px;
+    width: 12.5ch;
+    height: fit-content;
+    margin-bottom: 0px;
+}
+
+.subject-box-grid .classroom {
+    position: relative;
+    text-transform: uppercase;
+    color: inherit;
+    font-size: 26px;
+    font-weight: 10;
+    background-color: hsl(276, 41%, 88%);
+    border-radius: 10px;
+    padding: 4px 8px;
+    width: 60px;
+    height: fit-content;
+    margin-top: 10px;
+    margin-bottom: 0px;
+    text-align: center;
+}
+
+.subject-box-grid .classroom.dark-mode{
+    color: black;
+}
+
+.subject-box-grid .subscript-left {
+    font-size: 16px;
+    padding-left: 10px;
+    float: left;
+    width: fit-content;
+    height: fit-content;
+}
+
+.subject-box-grid .subscript-left input {
+    width: 1ch;
+}
+
+.subject-box-grid .subscript-right {
+    font-size: 16px;
+    float: right;
+    width: 100px;
+    height: fit-content;
+}
+
+.subject-box-grid .icon-right {
+    width: 18px;
+    height: 18px;
+    padding-right: 8px;
+}
+
+.subject-box-grid .icon-left {
+    width: 18px;
+    height: 18px;
+    transform: translateX(8px);
+}
+
+.description {
+    color: #5F5F5F;
+    font-size: 16px;
+    padding: 10px 10px;
+    height: 3fr;
+    text-align: justify;
+    width: calc(320px - 20px);
+}
+
+.description.dark-mode {
+    color: #d6d6d6;
+}
+
+.teachers {
+    color: black;
+    font-size: 16px;
+    padding-left: 10px;
+}
+
+.teachers.dark-mode {
+    color: white;
+}
+
+.add-subject-box {
+    display: grid;
+    background-color: hsla(120, 40%, 98%, 0.75);
+    border-radius: 10px;
+    border-color: hsl(0, 0%, 61%);
+    border-width: 2px;
+    border-style: dashed;
+    justify-content: center;
+    align-items: center;
+    width: 320px;
+    height: 160px;
+}
+
+.add-subject-box.dark-mode {
+    background-color: hsla(120, 2%, 8%, 0.75);
+    border-color: hsl(0, 0%, 15%);
+}
+
+.subject-box-grid input {
+    all: unset;
+}
+
+.add-subject-form textarea {
+    border: none;
+    background-color: transparent;
+    outline: none;
+}
+
+.add-subject-box img {
+    width: 150px;
+    height: 150px;
+    z-index: -1;
+}
+
+.add-subject-form {
+    position: fixed;
+    display: none;
+    visibility: hidden;
+
+    margin-left: 50%;
+    transform: translate(calc(-50% * 2), calc(50% * 2)) scale(2);
+    transform-origin: top left;
+    width: 320px;
+    height: 160px;
+    
+    background-color: hsl(120, 33%, 98%);
+    border-radius: 10px;
+    border-color: hsl(0, 0%, 61%);
+    border-width: 2px;
+    border-style: solid;
+    
+    z-index: 1001;
+}
+
+.add-subject-form.dark-mode {
+    background-color: hsl(120, 2%, 10%);
+    border-color: hsl(0, 0%, 15%);
+}
+
+.close-add-subject {
+    position: fixed;
+    visibility: hidden;
+    left: calc(50% + 320px + 20px);
+    top: 135px;
+    transform: translateX(-50%);
+    transition: transform .5s ease-in-out;
+    
+    z-index: 1001;
+}
+
+.close-button {
+    background-color: transparent;
+    border: none;
+    width: 42px;
+    height: 42px;
+}
+
+.close-button:hover {
+    transform: scale(1.05);
+}
+
+.counter {
+    position: absolute;
+    font-size: 12px;
+    color: #7777;
+    top: 100%;
+    left: 100%;
+    transform: translate(calc(-100% - 5px), calc(-200% - 5px));
+}
+
+.subject-form-button {
+    position: absolute;
+    all: unset;
+    visibility: hidden;
+    display: none;
+    width: fit-content;
+    height: 24px;
+    top: 50%;
+    left: 50%;
+    float: left;
+}
+
+.subject-form-button.dark-mode {
+    border: none;
+}
+
+.submit-form {
+    border-radius: 8px;
+    border-color: hsl(0, 0%, 61%);
+    border-width: 1px;
+    border-style: solid;
+    background-color: hsl(120, 33%, 98%);
+    padding: 2px 2px;
+    width: fit-content;
+    margin-top: 2px;
+
+    transition: transform .2s ease-in-out;
+}
+
+.submit-form.dark-mode {
+    background-color: hsl(120, 2%, 10%);
+}
+
+.remove-lesson {
+    background-color: white;
+
+    position: absolute;
+    cursor: pointer;
+    
+    top: -12px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    
+    border-radius: 100px;
+}
+
+.remove-lesson.dark-mode {
+    background-color: transparent;
+}
+
+.submit-form:hover {
+    transform: scale(1.05);
+}
+
+.main-panel {
+    margin: 20px 20px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.sub-panel {
+    top: 20px;
+    left: 10px;
+    padding: 20px 10px;
+    background-color: hsla(120, 40%, 96.1%, 0.76);
+    border: 2px solid hsl(120, 6%, 87%);
+    border-radius: 10px;
+}
+
+.admin-panel {
+    width: 46vw;
+}
+
+.sub-panel.dark-mode {
+    background-color: hsla(0, 0%, 8.2%, 0.97);
+    border: 2px solid hsl(0, 0%, 15%)
+}
+
+.sub-panel h1{
+    all: unset;
+    font-size: 32px;
+}
+
+.sub-container {
+    padding-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.sub {
+    flex: 1 1 calc(20% - 10px);
+    max-width: calc(20% - 10px);
+    
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 2px 6px 2px 6px;
+    border-color: rgb(204, 204, 204);
+    border-radius: 6px;
+    border-style: solid;
+    border-width: 1px;
+    
+    background-color: rgba(230, 230, 230, 0.5);
+
+    min-width: 150px;
+}
+
+.sub.dark-mode {
+    background-color: hsla(0, 0%, 20%, 0.5);
+    border-color: hsl(0, 0%, 30%);
+}
+
+.element {
+    border: none;
+    margin-left: 4px;
+    padding: 0px 4px;
+    background-color: hsl(276, 41%, 88%);
+    border-radius: 6px;
+    text-transform: uppercase;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 10;
+    width: fit-content;
+}
+
+.element.dark-mode {
+    color: black;
+}
+
+.sub .input {
+    text-transform: uppercase;
+    color: inherit;
+    font-size: 14px;
+    font-weight: 10;
+}
+
+.sub .dynamicInput {
+    width: 5ch;
+}
+
+#subjects-container {
+    display: flex;
+    gap: 2px;
+    flex-wrap: nowrap;
+    padding: 5px 10px;
+}
+
+.sub img {
+    padding-left: 10px;
+    width: 24px;
+    height: 24px;
+    transform: translateY(3px);
+}
+
+.sub span {
+    white-space: nowrap;
+}
+
+.sub input {
+    all: unset;
+}
+
+.sub form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
+
+.sub input[type="text"] {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.sub input[type="image"] {
+    padding-left: 10px;
+    width: 24px;
+    height: 24px;
+}
+
+.sub .tutor-input {
+    width: 15ch
+}
+
+.account-grid {
+    display: grid;
+    grid-template-columns: auto max-content;
+    gap: 10px;
+}
+
+.account-field {
+    display: contents;
+}
+
+.account-field .label {
+    display: inline-flex;
+    gap: 4px;
+}
+
+.account-field .label span {
+    font-weight: bold;
+    padding-right: 50px;
+}
+
+.account-field .label img {
+    width: 24px;
+    height: 24px;
+}
+
+.account-field .button {
+    cursor: pointer !important;
+    border: 1px solid rgb(204, 204, 204) !important;
+    border-radius: 6px !important;
+    background-color: rgba(230, 230, 230, 0.5) !important;
+}
+
+.account-field .button.dark-mode {
+    border: 1px solid hsl(0, 0%, 30%) !important;
+    background-color: hsla(0, 0%, 20%, 0.5) !important;
+}
+
+.non-clickable {
+    pointer-events: none !important;
+    color: #4c4c4c !important;
+}
+
+.non-clickable.dark-mode {
+    color: hsl(0, 0%, 70%) !important;
+}
+
+.account-field .button:hover {
+    transform: translateX(-5%) scale(1.05);
+}
+
+.account-field .value {
+    all: unset;
+    text-align: center;
+    padding: 2px 6px 2px 6px;
+    width: 100%;
+    transform: translateX(-5%);
+    transition: transform ease 0.3s;
+}
+
+.account-field .value-img {
+    width: 20px;
+    height: 20px;
+    transform: translate(10px, 2.5px);
+}
+
+.dropContainer {
+    display: flex;
+    
+    border: 1px solid rgb(204, 204, 204);
+    border-radius: 10px;
+    height: 100px;
+
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+}
+
+.dropContainer img {
+    height: 100%;
+}
+
+.dropContainer.dark-mode {
+    border: 1px solid hsl(0, 0%, 30%);
+}
+
+.testsContainer {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    margin: 20px 20px;
+    gap: 10px;
+}
+
+.testContainer {
+    display: grid;
+    position: relative;
+    
+    color: black;
+    
+    border: 2px solid hsl(0, 0%, 61%);
+    border-radius: 10px;
+    
+    height: 500px;
+    margin: 0px 5px;
+}
+
+.testContainer.dark-mode {
+    border-color: hsl(0, 0%, 15%);
+    color: white;
+}
+
+.testContainer .desc {
+    all: unset;
+    color: inherit;
+    height: fit-content;
+    margin-bottom: 0px;
+    margin: -20px 4px;
+}
+
+.testContainer .subject {
+    text-transform: uppercase;
+    font-size: 26px;
+    font-weight: 10;
+}
+
+.testContainer .num {
+    float: right;
+}
+
+.testContainer .download {
+    margin: 4px 4px;
+    border-radius: 8px;
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
+}
+
+.remove-test {
+    background-color: white;
+
+    position: absolute;
+    cursor: pointer;
+    
+    top: -12px;
+    right: -12px;
+    width: 24px;
+    height: 24px;
+    
+    border-radius: 100px;
+}
+
+.remove-test.dark-mode {
+    background-color: transparent;
+}
+
+.old-test {
+    height: 400px;
+    width: 300px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    border-bottom: 2px solid hsl(0, 0%, 61%);
+}
+
+.old-test.dark-mode {
+    border-color: hsl(0, 0%, 15%);
+}
+
+@media only screen and (max-width: 600px) {
+    .form h1 {
+        left: calc(50% - 52px - 20px);
+        top: 55px;
+
+        z-index: -1;
+    }
+
+    .main {
+        top: 45px;
+    }
+
+    .home {
+        left: 70px;
+    }
+    
+    .home .subjects {
+        grid-template-columns: repeat(1, 1fr);
+        top: 40px;
+    }
+
+    .sidebar {
+        top: 45px;
+    }
+    
+    .sidebar.expanded {
+        width: 180px;
+    }
+
+    .topbar {
+        height: 45px;
+        box-shadow: 0.1px 0 3px 1.5px #999;
+    }
+    
+    .logo {
+        position: relative;
+        left: 2.5px;
+        top: 2.5px;
+        height: 40px;
+        width: 40px;
+    }
+
+    .topbar-right {
+        transform: translateY(25%);   
+    }  
+
+    .close-add-subject {
+        transform: translateX(calc(-100% - 12px));
+        top: 0px;
+    }
+
+    .subjects {
+        position: absolute;
+        grid-template-columns: repeat(1, 1fr);
+        top: 10px;
+
+        gap: 10px;
+        padding: 10px;
+        margin-left: 100%;
+        transform: none;
+    }
+
+    .subject-box {
+        width: 320px;
+    }
+
+    .add-subject-box {
+        width: 320px;
+    }
+
+    .add-subject-form {
+        margin: 50% 50%;
+        transform: translateX(-50%);
+        width: 320px;
+    }
+
+    .close-add-subject {
+        left: calc(50% + 320px / 2 + 16px);
+        top: 190px;
+        transform: translateX(-50%);
+    }
+
+    .close-button {
+        width: 32px;
+        height: 32px;
+    }
+
+    .submit-form {
+        margin-top: 4px;
+    }
+
+    .main-panel {
+        margin: 10px 10px;
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .sub-panel {
+        max-width: 324px;
+    }
+
+    .sub .tutor-input {
+        max-width: 90px;
+    }
+
+    #subjects-container {
+        display: flex;
+        flex-wrap: nowrap;
+        padding: 5px 0px;
+    }
+
+    .account-grid {
+        grid-template-columns: repeat(1, 1fr);
+        width: calc(100vw - 100px);
+    }
+    
+    .account-field .button:hover {
+        transform: translateX(0px) scale(1.05);
+    }
+    
+    .account-field .value {
+        all: unset;
+        text-align: center;
+        padding: 2px 6px 2px 6px;
+        width: calc(100% - 12px);
+        transform: translateX(0px);
+    }
+
+    input[type="email"].value{
+        text-align: left;
+    }
+
+    .button:hover {
+        background-color: transparent;
+        border: none;
+    }
+
+    .testsContainer {
+        grid-template-columns: repeat(1, 1fr);
+    }
+
+    .home .sub-panel {
+        width: 331px;
+    }
+
+    .sub-title {
+        display: inline-block !important;
+        position: relative !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+    }
+}

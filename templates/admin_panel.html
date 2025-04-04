@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main">
+    <div class="main-panel">
+        <div class="sub-panel admin-panel">
+            <h1>Admins</h1>
+            <div class="sub-container">
+                {% for admin in admins %}
+                    <div class="sub">
+                        <span>{{ formatTitle(admin.username) }}</span>
+                        <a href="/remove-role/admin/{{ admin.id }}">
+                            <img src="{{ url_for('static', filename='close.svg') }}">
+                        </a>
+                    </div>
+                {% endfor %}
+                <div class="sub">
+                    <form action="/add-role/admin" method="POST">
+                        <input name="username" type="text" class="dynamicInput" required placeholder="Username" autocomplete="off" />
+                        <input type="image" src="{{ url_for('static', filename='person_add.svg') }}" />
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="sub-panel">
+            <h1>Tutors</h1>
+            <div class="sub-container">
+                {% for subjects, tutor in tutors %}
+                    <div class="sub" style="min-width: fit-content;">
+                        <span>{{ formatTitle(tutor.username) }}</span>
+                        {% for subject in subjects %}
+                            <span class="element">{{ subject }}</span>
+                        {% endfor %}
+                        <a href="/remove-role/teacher/{{ tutor.id }}">
+                            <img src="{{ url_for('static', filename='close.svg') }}">
+                        </a>
+                    </div>
+                {% endfor %}
+                <div class="sub" style="min-width: fit-content;">
+                    <form action="/add-role/teacher" method="POST">
+                        <input name="username" type="text" class="tutor-input" required placeholder="Username" autocomplete="off" />
+                        <a href="#" id="removeSubjectBtn">
+                            <span class="text" style="font-size: 24px;">-</span>
+                        </a>
+                        <div id="subjects-container">
+                            <select class="element" name="subjects[]" style="width: 15ch;" required>
+                                {% for subject in subjects %}
+                                <option value="{{ subject }}">{{ subject }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <a href="#" id="addSubjectBtn">
+                            <span class="text" style="font-size: 22px;">+</span>
+                        </a>
+                        <input type="image" src="{{ url_for('static', filename='person_add.svg') }}" />
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="sub-panel">
+            <h1>Subject</h1>
+            <div class="sub-container">
+                {% for subject in subjects %}
+                    <div class="sub">
+                        <span class="input">{{ formatTitle(subject) }}</span>
+                        <a href="/remove-subject/{{ subject }}">
+                            <img src="{{ url_for('static', filename='close.svg') }}">
+                        </a>
+                    </div>
+                {% endfor %}
+                <div class="sub">
+                    <form action="/add-subject" method="POST">
+                        <input name="name" type="text" class="dynamicInput input" maxlength="11" required placeholder="Subject name" autocomplete="off" />
+                        <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sub-panel">
+          <h1>Group</h1>
+              <div class="sub-container">
+                {% for id, group in zip(group_ids, groups) %}
+                    <div class="sub">
+                        <span class="input" style="text-transform: none;">{{ group }}</span>
+                        <a href="/remove-group/{{ id }}">
+                            <img src="{{ url_for('static', filename='close.svg') }}">
+                        </a>
+                    </div>
+                {% endfor %}
+                <div class="sub">
+                    <form action="/add-group" method="POST">
+                        <input name="name" type="text" class="dynamicInput input" style="text-transform: none;" maxlength="11" required placeholder="Group name" autocomplete="off" />
+                        <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="sub-panel">
+            <h1>Stari testi</h1>
+            
+            <form action="/add-test-im" method="POST" enctype="multipart/form-data">
+                <div id="dropContainer" class="dropContainer">
+                    <img src="{{ url_for('static', filename='add-no-circle.svg') }}">
+                </div>
+            
+                
+                <div style="display: flex;">
+                    <input type="file" id="fileInput" name="file" required />
+                    <select class="element" name="subject" style="width: max-content; margin: 8px 1px;" required>
+                        {% for subject in subjects %}
+                        <option value="{{ subject }}">{{ subject }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="number" class="element" name="number" min="1" max="99" placeholder="N" style="margin: 8px 1px; width: max-content;" required />
+                </div>
+                
+                <input type="submit" style="float:right" value="Upload"/>
+            </form>
+        </div>
+
+        <div class="sub-panel">
+            <h1>Users<h1>
+
+            <div style="overflow: auto; display: flex; flex-direction: column; gap: 8px; max-height: 300px;">
+                {% for user in users %}
+                <div class="sub" style="min-width: fit-content;">
+                    <form action="/add-to-group" method="POST">
+                        <span style="all: unset; font-size: 16px;">{{ formatTitle(user.username) }}</span>
+                        <input type="hidden" name="username" value="{{ user.username }}" />
+
+                        <div class="center-vertical">
+                            <a onclick="removeGroupBtn({{ user.id }});">
+                               <span class="text" style="font-size: 24px; cursor: pointer;">-</span>
+                            </a>
+                            <div id="groups-container-{{ user.id }}">
+                                {% for group in user.get_groups() %}
+                                <select class="element" name="groups[]" style="width: 15ch; text-transform: none;" required>
+                                    <option value="{{ group }}" selected>{{ group }}</option> 
+                                    {% for sub_group in list(set(groups) - set(group)) %}
+                                        <option value="{{ sub_group }}">{{ sub_group }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% endfor %}
+
+                            </div>
+                            <a onclick="addGroupBtn({{ user.id }});">
+                                <span class="text" style="font-size: 22px; cursor: pointer;">+</span>
+                           </a>
+                        </div>
+
+                        <input type="image" src="{{ url_for('static', filename='sync.svg') }}" />
+
+                        <input type="hidden" id="hold_groups-{{ user.id }}" value="{{ groups }}">
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+
+    </div>
+
+    <div style="margin: 20px 20px;">
+        {% for category, message in get_flashed_messages(with_categories=true) %}
+            <div class="alert {{ 'alert-danger' if category == 'danger' else 'alert-success' if category == 'success' else 'alert-default' }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+<input type="hidden" id="hold_subjects" value="{{ subjects }}">
+{% endblock %}
+
+{% block script %}
+<script>
+    // https://stackoverflow.com/questions/8006715/drag-drop-files-into-standard-html-file-input
+    var dropContainer = document.getElementById('dropContainer');
+    
+    dropContainer.ondragover = dropContainer.ondragenter = function(evt) {
+        evt.preventDefault();
+    };
+      
+    dropContainer.ondrop = function(evt) {
+        fileInput.files = evt.dataTransfer.files;
+      
+        evt.preventDefault();
+    };
+</script>
+{% endblock %}

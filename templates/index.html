@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="welcome">Dobrodošli, {{ current_user.username.split(' ')[0].capitalize() }}</h1>
+<div class="home">
+    <div class="sub-panel">
+        {% if lessons.count() > 0 %}
+        <h1 class="sub-title">Izbrane ure</h1>
+        {% else %}
+        <h1 class="sub-title">Nimate izbranih ur</h1>
+        {% endif %}
+        <div class="sub-container subject">
+            {% for lesson in lessons %}
+            <div class="subject-box" onclick="window.location.href='tutorstvo/remove/{{ lesson.id }}'" style="cursor: pointer;">
+                <div class="subject-box-grid">
+                    <div style="display: flex;">
+                        <span class="title">{{ lesson.subject }}</span>
+                        <span class="classroom">{{ lesson.classroom }}</span>
+                    </div>
+
+                    <div style="display: float;">
+                        <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
+                        <span class="subscript-left">{{ lesson.filled }}/{{ lesson.min }}+</span>
+                        <img src="{{ url_for('static', filename='calendar.svg') }}" class="icon-right" style="float: right;">
+                        <span class="subscript-right">{{ lesson.datetime.split('/', 1)[1] }}</span>
+                    </div>
+                </div>
+                <span class="description">
+                    {{ lesson.description }}
+                </span>
+                <span class="teachers">{{ lesson.teachers(subject_db) }}</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+*.secrets
+*.db
+.venv
+**/__pycache__/
+tests

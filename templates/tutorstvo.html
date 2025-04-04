@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+
+{% block stylesheet %}
+<link rel="stylesheet" id="flatpickr-theme" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="main">
+    <div class="subjects sub-panel">
+        {% for lesson in lessons %}
+        <div class="subject-box" onclick="window.location.href='tutorstvo/add/{{ lesson.id }}'" style="cursor: pointer;">
+            {% if lesson.subject.lower() in subjects %}
+                <a href="remove-lesson/{{ lesson.id }}" class="remove-lesson">
+                    <img src="{{ url_for('static', filename='remove.svg') }}">
+                </a>
+            {% endif %}
+
+            <div class="subject-box-grid">
+                <div style="display: flex;">
+                    <span class="title">{{ lesson.subject }}</span>
+                    <span class="classroom">{{ lesson.classroom }}</span>
+                </div>
+
+                <div style="display: float;">
+                    <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
+                    <span class="subscript-left">{{ lesson.filled }}/{{ lesson.min }}+</span>
+                    <img src="{{ url_for('static', filename='calendar.svg') }}" class="icon-right" style="float: right;">
+                    <span class="subscript-right">{{ lesson.datetime.split('/', 1)[1] }}</span>
+                </div>
+            </div>
+            <span class="description">
+                {{ lesson.description }}
+            </span>
+            <span class="teachers">{{ lesson.teachers(subject_db) }}</span>
+        </div>
+        {% endfor %}
+
+        {% if current_user.is_teacher() or current_user.is_admin() %}
+        <a href="#" style="cursor: pointer;" id="add-subject">
+            <div class="add-subject-box" style="background-color: rgba(0, 0, 0, 0);">
+                <img src="{{ url_for('static', filename='add-no-circle.svg') }}">
+            </div>
+        </a>
+        {% endif %}
+    </div>
+</div>
+{% if current_user.is_teacher() or current_user.is_admin() %}
+<form method="POST" id="subject-form">
+    <div class="add-subject-form">
+        <div class="subject-box-grid">
+            <div style="display: flex;">
+                <select class="title" name="title" required>
+                    {% for subject in subjects %}
+                    <option value="{{ subject }}">{{ subject }}</option>
+                    {% endfor %}
+                </select>
+                <input class="classroom" placeholder="Kje" maxlength="3" name="classroom" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+            </div>
+
+            <div style="display: float;">
+                <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
+                <div class="subscript-left" style="display: flex; justify-content: start;">
+                    <span>0/</span>
+                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" name="cap" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                    <span>+</span>
+                </div>
+                <img src="{{ url_for('static', filename='calendar.svg') }}" class="icon-right" style="float: right;">
+                <input type="hidden" name="datetime" id="fullDatetime" required />
+                <input class="subscript-right" type="text" id="datetime" placeholder="DD/MM HH:MM" required />
+            </div>
+        </div>
+
+        <textarea class="description" name="description" rows="3" cols="160" maxlength="90" style="resize: none;" placeholder="Description" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        <p class="counter"><span id="description-char-count">0</span>/90</p>
+        
+        <div style="display: flex; justify-content: space-between;">
+            <div class="submit-form">
+                <input class="subject-form-button" type="image" src="{{ url_for('static', filename='add.svg') }}" />
+                <input class="subject-form-button" type="submit" value="ADD" />
+            </div>
+
+            <div class="group-select">
+                <select class="element" name="group" style="width: 15ch; text-transform: none;" required>
+                   {% for group in current_user.get_groups() %}
+                       <option value="{{ group }}">{{ group }}</option>
+                   {% endfor %}
+               </select>
+            </div>
+
+        </div>
+    </div>
+    <a href="#" class="close-add-subject">
+        <img src="{{ url_for('static', filename='remove.svg') }}" class="close-button">
+    </a>
+</form>
+{% endif %}
+{% endblock %}
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+{% endblock %}

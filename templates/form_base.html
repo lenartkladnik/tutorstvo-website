@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,
+                                   initial-scale=1.0">
+    <title>Tutorstvo - Gimsen</title>
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body data-dark-mode="{{ 'true' if current_user.dark_mode else 'false' }}">
+    <main>
+        <div class="topbar">
+            <a href="home" class="logo">
+                <img src="{{ url_for('static', filename='tutorstvo.svg') }}" class="logo">
+            </a>
+
+            {% if current_user.is_authenticated %}
+                <div class="topbar-right">
+                    <a href="toggle-dark-mode" class="button">
+                        <img src="{{ url_for('static', filename='dark_mode.svg') }}" id="toggle-dark-mode" class="icon">
+                    </a>
+            
+                </div>
+            {% endif %}
+        </div>
+        <button class="sidebar-toggle" onclick="window.location.href='/home'">
+            <i class="material-icons back-icon">arrow_back</i>
+        </button>
+        
+        {% block content %}{% endblock %}
+        
+        <br />
+        <br />
+        
+        <div class="alert">
+            {% for category, message in get_flashed_messages(with_categories=true) %}
+                <div class="{{ 'alert-danger' if category == 'danger' else 'alert-success' if category == 'success' else 'alert-default' }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+
+</html>
