@@ -1018,6 +1018,7 @@ li:has(> .sidebar-selected) {
 
     .sub-panel {
         max-width: 324px;
+        min-width: 324px;
     }
 
     .sub .tutor-input {
