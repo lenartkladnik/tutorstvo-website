@@ -32,13 +32,13 @@
                         {% for subject in subjects %}
                             <span class="element">{{ subject }}</span>
                         {% endfor %}
-                        <a href="/remove-role/teacher/{{ tutor.id }}">
+                        <a href="/remove-role/tutor/{{ tutor.id }}">
                             <img src="{{ url_for('static', filename='close.svg') }}">
                         </a>
                     </div>
                 {% endfor %}
                 <div class="sub" style="min-width: fit-content;">
-                    <form action="/add-role/teacher" method="POST">
+                    <form action="/add-role/tutor" method="POST">
                         <input name="username" type="text" class="tutor-input" required placeholder="Username" autocomplete="off" />
                         <a href="#" id="removeSubjectBtn">
                             <span class="text" style="font-size: 24px;">-</span>

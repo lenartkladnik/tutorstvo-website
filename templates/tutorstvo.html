@@ -31,11 +31,11 @@
             <span class="description">
                 {{ lesson.description }}
             </span>
-            <span class="teachers">{{ lesson.teachers(subject_db) }}</span>
+            <span class="tutors">{{ lesson.tutors(subject_db) }}</span>
         </div>
         {% endfor %}
 
-        {% if current_user.is_teacher() or current_user.is_admin() %}
+        {% if current_user.is_tutor() or current_user.is_admin() %}
         <a href="#" style="cursor: pointer;" id="add-subject">
             <div class="add-subject-box" style="background-color: rgba(0, 0, 0, 0);">
                 <img src="{{ url_for('static', filename='add-no-circle.svg') }}">
@@ -44,7 +44,7 @@
         {% endif %}
     </div>
 </div>
-{% if current_user.is_teacher() or current_user.is_admin() %}
+{% if current_user.is_tutor() or current_user.is_admin() %}
 <form method="POST" id="subject-form">
     <div class="add-subject-form">
         <div class="subject-box-grid">

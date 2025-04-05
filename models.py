@@ -7,10 +7,10 @@ class Subject(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    teachers = db.Column(db.String(100), nullable=False)
+    tutors = db.Column(db.String(100), nullable=False)
 
-    def get_teachers(self) -> list:
-        return list(filter(None, self.teachers.split(', ')))
+    def get_tutors(self) -> list:
+        return list(filter(None, self.tutors.split(', ')))
 
 class Lesson(db.Model):
     __bind_key__ = 'lessons'
@@ -32,11 +32,11 @@ class Lesson(db.Model):
     def isInGroup(self, group: str) -> bool:
         return group in self.get_groups()
 
-    def get_teachers(self, subject_db: Subject) -> list:
-        return subject_db.query.filter_by(name=self.subject).first().get_teachers()
+    def get_tutors(self, subject_db: Subject) -> list:
+        return subject_db.query.filter_by(name=self.subject).first().get_tutors()
 
-    def teachers(self, subject_db: Subject) -> str:
-        return ', '.join(list(map(formatTitle, self.get_teachers(subject_db))))
+    def tutors(self, subject_db: Subject) -> str:
+        return ', '.join(list(map(formatTitle, self.get_tutors(subject_db))))
 
 class User(UserMixin, db.Model):
     __bind_key__ = 'users'
@@ -59,13 +59,13 @@ class User(UserMixin, db.Model):
     def is_admin(self):
         return self.role == 'admin'
 
-    def is_teacher(self):
-        return self.role == 'teacher'
+    def is_tutor(self):
+        return self.role == 'tutor'
 
-    def teacher_for(self, subject: Subject):
+    def tutor_for(self, subject: Subject):
         subjects = []
         for subject in subject.query.all():
-            for i in subject.teachers.split(', '):
+            for i in subject.tutors.split(', '):
                 if i.lower() == self.username.lower():
                     subjects.append(subject.name)
 
@@ -77,9 +77,9 @@ class User(UserMixin, db.Model):
         if self.is_admin():
             subjects = list(map(lambda x: x.name, subject.query.all()))
 
-        elif self.is_teacher():
+        elif self.is_tutor():
             for subject in subject.query.all():
-                for i in subject.teachers.split(', '):
+                for i in subject.tutors.split(', '):
                     if i.lower() == self.username.lower():
                         subjects.append(subject.name)
 

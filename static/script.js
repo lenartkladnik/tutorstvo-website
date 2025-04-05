@@ -262,7 +262,7 @@ function addGroupBtn(id) {
     const newSelect = document.createElement('select');
     newSelect.setAttribute('name', 'groups[]');
     newSelect.setAttribute('class', darkModeEnabled ? 'element dark-mode': 'element');
-    newSelect.setAttribute('style', 'width: 15ch;');
+    newSelect.setAttribute('style', 'width: 15ch; text-transform: none;');
     newSelect.setAttribute('required', '');
     
     groups.forEach(function(group) {

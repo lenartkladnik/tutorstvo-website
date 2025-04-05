@@ -47,6 +47,20 @@ html {
     left: 52px;
 }
 
+.big-logo {
+    position: absolute;
+    top: 110vh;
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 200px;
+    height: 200px;
+
+    background-color: white;
+    border-radius: 360px;
+}
+
 .home {
     position: absolute;
     top: 185px;
@@ -467,13 +481,13 @@ li:has(> .sidebar-selected) {
     color: #d6d6d6;
 }
 
-.teachers {
+.tutors {
     color: black;
     font-size: 16px;
     padding-left: 10px;
 }
 
-.teachers.dark-mode {
+.tutors.dark-mode {
     color: white;
 }
 

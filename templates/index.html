@@ -28,10 +28,11 @@
                 <span class="description">
                     {{ lesson.description }}
                 </span>
-                <span class="teachers">{{ lesson.teachers(subject_db) }}</span>
+                <span class="tutors">{{ lesson.tutors(subject_db) }}</span>
             </div>
             {% endfor %}
         </div>
     </div>
 </div>
+<img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo">
 {% endblock %}
