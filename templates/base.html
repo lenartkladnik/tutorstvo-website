@@ -57,6 +57,12 @@
                     </a>
                 </li>
                 <li>
+                    <a href="learning-resources" class="sidebar-link">
+                        <img src="{{ url_for('static', filename='learning_resources.svg') }}" class="sidebar-icon">
+                        <span class="sidebar-text">Učna sredstva</span>
+                    </a>
+                </li>
+                <li>
                     <a href="account" class="sidebar-link">
                         <img src="{{ url_for('static', filename='account.svg') }}" class="sidebar-icon">
                         <span class="sidebar-text">Account</span>
@@ -74,6 +80,7 @@
         </aside>
     </main>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block script %}{% endblock %}
 </body>
 

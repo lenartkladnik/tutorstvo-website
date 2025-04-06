@@ -1,9 +1,6 @@
-Groups
- - Administrator
- - Tutors
- - Students
+/learning-resources
 
-------------
-Students + group field
-Sidebar + Groups
+Subjects:
+  - Links
+  - ? Učni listi, ...
 

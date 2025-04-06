@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main">
+    <div style="width: calc(100vw - 52px - 40px); padding-left: 20px;">
+        {% for subject in subjects %}
+        <button class="expand">
+            {{ subject.name.capitalize() }}
+            <span class="expand-icon">^</span>
+        </button>
+        <div class="expandable-content" style="display: none;">
+            {% for url in subject.get_learning_resources() %}
+            <previewbox-link href="{{ url }}" style="padding-bottom: 2px; --pb-background-color: rgba(0, 0, 0, 0.1); --pb-text-color: black; --pb-text-color-light: black;"></previewbox-link>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

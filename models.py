@@ -8,9 +8,13 @@ class Subject(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
     tutors = db.Column(db.String(100), nullable=False)
+    learning_resources = db.Column(db.String(1000), default='', nullable=False)
 
     def get_tutors(self) -> list:
-        return list(filter(None, self.tutors.split(', ')))
+        return list(filter(None, self.tutors.split(',')))
+
+    def get_learning_resources(self) -> list:
+        return list(filter(None, self.learning_resources.split(',')))
 
 class Lesson(db.Model):
     __bind_key__ = 'lessons'
@@ -65,7 +69,7 @@ class User(UserMixin, db.Model):
     def tutor_for(self, subject: Subject):
         subjects = []
         for subject in subject.query.all():
-            for i in subject.tutors.split(', '):
+            for i in subject.get_tutors():
                 if i.lower() == self.username.lower():
                     subjects.append(subject.name)
 
@@ -79,7 +83,7 @@ class User(UserMixin, db.Model):
 
         elif self.is_tutor():
             for subject in subject.query.all():
-                for i in subject.tutors.split(', '):
+                for i in subject.get_tutors():
                     if i.lower() == self.username.lower():
                         subjects.append(subject.name)
 

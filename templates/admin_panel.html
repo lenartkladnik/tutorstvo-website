@@ -46,7 +46,7 @@
                         <div id="subjects-container">
                             <select class="element" name="subjects[]" style="width: 15ch;" required>
                                 {% for subject in subjects %}
-                                <option value="{{ subject }}">{{ subject }}</option>
+                                <option value="{{ subject.name }}">{{ subject.name }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -64,8 +64,8 @@
             <div class="sub-container">
                 {% for subject in subjects %}
                     <div class="sub">
-                        <span class="input">{{ formatTitle(subject) }}</span>
-                        <a href="/remove-subject/{{ subject }}">
+                        <span class="input">{{ formatTitle(subject.name) }}</span>
+                        <a href="/remove-subject/{{ subject.name }}">
                             <img src="{{ url_for('static', filename='close.svg') }}">
                         </a>
                     </div>
@@ -100,7 +100,7 @@
         </div>
         
         <div class="sub-panel">
-            <h1>Stari testi</h1>
+            <h1>Stari Testi</h1>
             
             <form action="/add-test-im" method="POST" enctype="multipart/form-data">
                 <div id="dropContainer" class="dropContainer">
@@ -112,7 +112,7 @@
                     <input type="file" id="fileInput" name="file" required />
                     <select class="element" name="subject" style="width: max-content; margin: 8px 1px;" required>
                         {% for subject in subjects %}
-                        <option value="{{ subject }}">{{ subject }}</option>
+                        <option value="{{ subject.name }}">{{ subject.name }}</option>
                         {% endfor %}
                     </select>
                     <input type="number" class="element" name="number" min="1" max="99" placeholder="N" style="margin: 8px 1px; width: max-content;" required />
@@ -125,7 +125,7 @@
         <div class="sub-panel">
             <h1>Users<h1>
 
-            <div style="overflow: auto; display: flex; flex-direction: column; gap: 8px; max-height: 300px;">
+            <div class="usersContainer">
                 {% for user in users %}
                 <div class="sub" style="min-width: fit-content;">
                     <form action="/add-to-group" method="POST">
@@ -159,6 +159,37 @@
                 </div>
                 {% endfor %}
             </div>
+        </div>
+
+        <div class="sub-panel">
+            <h1>Learning Resources</h1>
+            <div class="sub-container">
+                {% for subject in subjects %}
+                {% for url in subject.get_learning_resources() %}
+                    <div class="sub" style="min-width: fit-content;">
+                        <span>{{ url }}</span>
+                        <span class="element">{{ subject.name }}</span>
+                        <a href="/remove-learning-resource?url={{ url }}&subject={{ subject.name }}">
+                            <img src="{{ url_for('static', filename='close.svg') }}">
+                        </a>
+                    </div>
+                {% endfor %}
+                {% endfor %}
+                <div class="sub" style="min-width: fit-content;">
+                    <form action="/add-learning-resource" method="POST">
+                        <input name="url" type="url" class="tutor-input" required placeholder="Link" autocomplete="off" />
+                        <div id="subjects-container">
+                            <select class="element" name="subject" style="width: 15ch;" required>
+                                {% for subject in subjects %}
+                                <option value="{{ subject.name }}">{{ subject.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
+                    </form>
+                </div>
+            </div>
+        </div>
 
     </div>
 
@@ -171,6 +202,7 @@
     </div>
 
 </div>
+
 <input type="hidden" id="hold_subjects" value="{{ subjects }}">
 {% endblock %}
 

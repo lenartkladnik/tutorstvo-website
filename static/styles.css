@@ -1,7 +1,7 @@
 body {
     font-family: 'Inter', 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
     background-color: hsl(120, 40%, 96%);
-    overflow-x: hidden;
+    overflow-x: hidden; 
 }
 
 img:not(.noInvert).dark-mode {
@@ -741,6 +741,7 @@ li:has(> .sidebar-selected) {
 
 .sub span {
     white-space: nowrap;
+    padding-right: 8px;
 }
 
 .sub input {
@@ -904,6 +905,21 @@ li:has(> .sidebar-selected) {
     height: calc(100% - 8px);
 }
 
+.usersContainer {
+    overflow: auto;
+    
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: flex-start;
+    
+    max-height: 300px;
+}
+
+.usersContainer > * {
+    flex: 1 1 auto;
+}
+
 .remove-test {
     background-color: white;
 
@@ -934,6 +950,67 @@ li:has(> .sidebar-selected) {
     border-color: hsl(0, 0%, 15%);
 }
 
+.expand {
+    background-color: white;
+    color: inherit;
+    border: 2px solid hsl(0, 0%, 61%);
+    
+    border-radius: 10px;
+    cursor: pointer;
+    
+    padding: 18px;
+    margin-top: 10px;
+    width: 100%;
+    
+    text-align: left;
+    outline: none;
+    font-size: 15px;
+}
+
+.expand.dark-mode {
+    background-color: hsla(0, 0%, 8.2%, 0.97);
+    border-color: hsl(0, 0%, 15%);
+}
+
+.expand:hover {
+    background-color: transparent;
+}
+
+.expand.active {
+    border-bottom-right-radius: 0px;
+    border-bottom-left-radius: 0px;
+}
+
+.expandable-content {
+    padding: 0 18px;
+    
+    flex-direction: column;
+    overflow: scroll;
+    
+    color: inherit;
+    background-color: rgba(230, 230, 230, 0.5);
+
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+}
+
+.expandable-content.dark-mode {
+    background-color: hsla(0, 0%, 20%, 0.5);
+}
+
+.expandable-content a {
+    color: #005cc5;
+}
+
+.expand-icon {
+    position: absolute;
+    right: 10px;
+
+    font-weight: 100;
+    font-size: 20px;
+    color: inherit;
+}
+
 @media only screen and (max-width: 600px) {
     .form h1 {
         left: calc(50% - 52px - 20px);
@@ -960,7 +1037,7 @@ li:has(> .sidebar-selected) {
     }
     
     .sidebar.expanded {
-        width: 180px;
+        width: 55vw;
     }
 
     .topbar {

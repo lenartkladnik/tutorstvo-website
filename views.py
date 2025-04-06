@@ -205,7 +205,7 @@ def requestAdmin():
 def adminPanel():
     admins = User.query.filter_by(role="admin").all()
     tutors = [user for user in User.query.all() if user.tutor_for(Subject) != []]
-    subjects = [subject.name for subject in Subject.query.all()]
+    subjects = Subject.query.all()
     groups = [group.name for group in Group.query.all()]
     group_ids = [group.id for group in Group.query.all()]
     users = User.query.all()
@@ -296,7 +296,7 @@ def addRole(role):
                     s = Subject.query.filter_by(name=subject).first()
 
                     if not (user.username.lower() in s.get_tutors()):
-                        s.tutors = ', '.join(s.get_tutors() + [user.username])
+                        s.tutors = ','.join(s.get_tutors() + [user.username])
 
             print(f"Gave role {role} to '{user.username}'.")
 
@@ -324,7 +324,7 @@ def removeRole(role, id):
 
         for s in subjects:
             if user.username.lower() in s.get_tutors():
-                s.tutors = ', '.join(set(s.get_tutors()) - {user.username})
+                s.tutors = ','.join(set(s.get_tutors()) - {user.username})
 
     db.session.commit()
 
@@ -513,3 +513,39 @@ def confirmEmail(token):
     db.session.commit()  
 
     return redirect(url_for("views.account"))
+
+@views.route('/learning-resources')
+@login_required
+def learning_resources():
+    subjects = Subject.query.all()
+
+    return render_template('learning_resources.html', subjects=subjects)
+
+@views.route('/add-learning-resource', methods=['POST'])
+@admin_required
+def add_learning_resource():
+    if request.form:
+        subject_name = request.form['subject']
+        url = request.form['url']
+
+        subject = Subject.query.filter_by(name=subject_name).first()
+        subject.learning_resources = ','.join(set(subject.get_learning_resources() + [url]))  
+
+        db.session.commit()
+
+    return redirect(request.referrer)
+
+@views.route('/remove-learning-resource')
+@admin_required
+def remove_learning_resource():
+    url = request.args.get('url', None)
+    subject_name = request.args.get('subject', None)
+
+    if (url and subject_name):
+        subject = Subject.query.filter_by(name=subject_name).first()
+        subject.learning_resources = ','.join(set(subject.get_learning_resources()) - set([url]))
+
+        db.session.commit()
+
+    return redirect(request.referrer)
+

@@ -18,10 +18,22 @@ function toggleDarkMode() {
     if (document.body.dataset.darkMode === 'true'){
         toggle.src = "static/light_mode.svg"
         document.body.data_dark_mode = "true"
+
+        document.querySelectorAll('previewbox-link').forEach(el => {
+            el.style.setProperty('--pb-text-color', 'white');
+            el.style.setProperty('--pb-text-color-light', 'white');
+            el.style.setProperty('--pb-background-color', 'rgba(0, 0, 0, 0.3)');
+        });
     }
     else{
         toggle.src = "static/dark_mode.svg"
         document.body.data_dark_mode = "false"
+        
+        document.querySelectorAll('previewbox-link').forEach(el => {
+            el.style.setProperty('--pb-text-color', 'white');
+            el.style.setProperty('--pb-text-color-light', 'white');
+            el.style.setProperty('--pb-background-color', 'rgba(0, 0, 0, 0.1)');
+        });
     }
 }
 
@@ -285,5 +297,20 @@ function removeGroupBtn(id) {
         groupsContainer.removeChild(selects[selects.length - 1]);
     }
 
+}
+
+var coll = document.getElementsByClassName("expand");
+
+for (let i = 0; i < coll.length; i++) {
+    coll[i].addEventListener("click", function() {
+        this.classList.toggle("active");
+
+        var icon = this.getElementsByClassName("expand-icon")[0];
+        var content = this.nextElementSibling;
+
+        icon.textContent = icon.textContent == 'v' ? '^': 'v';
+        content.style.display = content.style.display == "none" ? "flex": "none";
+
+  });
 }
 
