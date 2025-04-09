@@ -419,15 +419,15 @@ def removeLesson(id):
 
     return redirect(url_for('views.tutorstvo'))
 
-@views.route('/tests')
+# @views.route('/tests')
 @login_required
 def tests():
     if not os.path.exists(TESTS_DIR):
-        os.makedirs(TESTS_DIR)
+       os.makedirs(TESTS_DIR)
 
     return render_template('tests.html', images=os.listdir(TESTS_DIR), tests_dir=TESTS_DIR)
 
-@views.route('/add-test-im', methods=['POST'])
+# @views.route('/add-test-im', methods=['POST'])
 @admin_required
 def addTestImage():
     file = request.files['file']
@@ -450,7 +450,7 @@ def addTestImage():
             
     return redirect(request.referrer)
 
-@views.route('/remove-test-im/<path>')
+# @views.route('/remove-test-im/<path>')
 @cache.cached(timeout=60)
 @admin_required
 def removeTestImage(path):
