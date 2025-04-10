@@ -12,6 +12,16 @@ input[type="image"].dark-mode {
     filter: invert(100%);
 }
 
+.center {
+    position: absolute;
+    margin-left: 50%;
+    transform: translateX(-50%);
+}
+
+.right {
+    float: right;
+}
+
 .center-vertical {
     display: flex;
     align-items: center;
@@ -382,14 +392,21 @@ li:has(> .sidebar-selected) {
 .subject-box {
     display: grid;
     position: relative;
-    background-color: hsl(120, 33%, 98%);
+    
     border-radius: 10px;
+    
     border-color: hsl(0, 0%, 61%);
     color: black;
+    background-color: hsl(120, 33%, 98%);
+    
     border-width: 2px;
     border-style: solid;
+
     width: 320px;
     height: 160px;
+
+    text-align: left;
+    font-weight: normal;
 }
 
 .subject-box.dark-mode{
@@ -483,6 +500,7 @@ li:has(> .sidebar-selected) {
 
 .tutors {
     color: black;
+    
     font-size: 16px;
     padding-left: 10px;
 }
@@ -494,14 +512,21 @@ li:has(> .sidebar-selected) {
 .add-subject-box {
     display: grid;
     background-color: hsla(120, 40%, 98%, 0.75);
+    
     border-radius: 10px;
-    border-color: hsl(0, 0%, 61%);
-    border-width: 2px;
-    border-style: dashed;
+    
     justify-content: center;
     align-items: center;
+    
     width: 320px;
     height: 160px;
+}
+
+.add-subject {
+    display: block;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
 }
 
 .add-subject-box.dark-mode {
@@ -529,6 +554,8 @@ li:has(> .sidebar-selected) {
     position: fixed;
     display: none;
     visibility: hidden;
+
+    top: 0;
 
     margin-left: 50%;
     transform: translate(calc(-50% * 2), calc(50% * 2)) scale(2);
@@ -1011,6 +1038,55 @@ li:has(> .sidebar-selected) {
     color: inherit;
 }
 
+.week {
+    color: rgb(77, 77, 77);
+    background-color: rgba(230, 230, 230, 0.5);
+
+    border-spacing: 10px;
+    margin-top: 10px;
+
+    border-radius: 8px;
+}
+
+.week.dark-mode {
+    color: white;
+    background-color: rgba(19, 19, 19, 0.5);
+}
+
+.week .day {
+    text-transform: uppercase;
+    font-size: 12px;
+}
+
+.week .date {
+    font-size: 16px;
+}
+
+.day-container {
+    width: 300px;
+}
+
+.week .side {
+    padding-bottom: 10px;
+    padding-top: 10px;
+}
+
+.week .side .indicator {
+    font-size: 16px;
+}
+
+.week .side .duration {
+    font-size: 12px;
+}
+
+.week .lesson-display {
+    background-color: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+
+    min-width: 320px;
+    height: 160px;
+}
+
 @media only screen and (max-width: 600px) {
     .form h1 {
         left: calc(50% - 52px - 20px);
@@ -1161,5 +1237,13 @@ li:has(> .sidebar-selected) {
         position: relative !important;
         left: 50% !important;
         transform: translateX(-50%) !important;
+    }
+
+    .week {
+        transform: scale(0.88) translate(-25px, -60px);
+    }
+
+    .tutorstvo-arrows {
+        transform: translateX(-12px);
     }
 }

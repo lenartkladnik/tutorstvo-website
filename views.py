@@ -10,7 +10,7 @@ from functools import wraps
 from models import User, Subject, Lesson, Group
 from resources import formatTitle, confirm_token, generate_confirmation_token, secrets
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 
 views = Blueprint('views', __name__)
 
@@ -337,6 +337,47 @@ def home():
 
     return render_template('index.html', lessons=lessons, subject_db=Subject)
 
+months = {
+    1: 'januar',
+    2: 'februar',
+    3: 'marec',
+    4: 'april',
+    5: 'maj',
+    6: 'junij',
+    7: 'julij',
+    8: 'avgust',
+    9: 'september',
+    10: 'oktober',
+    11: 'november',
+    12: 'december'
+}
+
+days = {
+    0: 'Ponedeljek',
+    1: 'Torek',
+    2: 'Sreda',
+    3: 'Četrtek',
+    4: 'Petek',
+    5: 'Sobota',
+    6: 'Nedelja'
+}
+
+def getWeek(start_date: datetime) -> tuple[list[tuple], str]:
+    weekStart = start_date - timedelta(days=start_date.weekday())
+
+    week = []
+    for i in range(5):
+        day = weekStart + timedelta(days=i)
+        week.append((days[day.weekday()], f"{day.day}. {months[day.month]}"))
+    
+    return week, days[start_date.weekday()]
+
+def isInTimeRange(time: str, timeRange: tuple[str, str], format: str = "%H:%M") -> bool:
+    time_datetime = datetime.strptime(time, format).time()
+    timeRange_datetime = [datetime.strptime(i, format).time() for i in timeRange]
+
+    return timeRange_datetime[0] <= time_datetime <= timeRange_datetime[1]
+
 @views.route('/tutorstvo', methods=['GET', 'POST'])
 @login_required
 def tutorstvo():
@@ -347,14 +388,69 @@ def tutorstvo():
         db.session.add(new_lesson)
 
         db.session.commit()
-    
+
     lessons = Lesson.query.filter(Lesson.id.notin_(current_user.getSelectedSubjects()))
     mask = list(map(lambda lesson: any(map(lambda x: x in current_user.get_groups(), lesson.get_groups())), lessons))
     lessons = [d for d, m in zip(lessons, mask) if m]
     
+    side = [('PRE', '7:10', '7:55'), ('O', '10:25', '10:55'), ('6', '12:40', '13:25'), ('7', '13:30', '14:15'), ('8', '14:20', '15:05')] 
+    
+    user_agent = request.headers.get('User-Agent', '').lower()
+    mobile = False
+    if any(mobile in user_agent for mobile in ['iphone', 'android', 'ipad', 'mobile']):
+        mobile = True
+
+    startDate = request.args.get('date')
+    if startDate and not mobile:
+        startDate = datetime.strptime(startDate, '%d-%m-%Y')
+        startDate = startDate - timedelta(days=startDate.weekday())
+
+    elif not mobile:
+        startDate = datetime.today() - timedelta(days=datetime.today().weekday())
+
+    elif not startDate:
+        startDate = datetime.today()
+
+    else:
+        startDate = datetime.strptime(startDate, '%d-%m-%Y')
+
+    lessons_by_column = []
+    lesson_dates = []
+
+    r = 1 if mobile else 5
+    for i in range(r):
+        column = []
+        column_lessons = list(filter(lambda lesson: lesson.datetime.split(' ')[0] == (startDate + timedelta(days=i)).strftime("%Y/%d/%m"), lessons))
+        
+        for j in side:
+            lesson_date = f'{(startDate + timedelta(days=i)).strftime("%Y/%d/%m")} {j[1]}'
+
+            for lesson in column_lessons:
+                if isInTimeRange(lesson.datetime.split(' ')[1], (j[1], j[2])):
+                    column.append((lesson_date, lesson))
+
+                else:
+                    column.append((lesson_date, ''))
+
+
+            if not column_lessons:
+                column.append((lesson_date, ''))
+
+        lessons_by_column.append(column)
+
+    lessons_by_row = [list(x) for x in zip(*lessons_by_column)]
+
+    startNext = [(startDate - timedelta(days=7)).strftime('%d-%m-%Y'), (startDate + timedelta(days=7)).strftime('%d-%m-%Y')]
     subjects = current_user.subjects(Subject)
 
-    return render_template('tutorstvo.html', lessons=lessons, subjects=subjects, subject_db=Subject)
+    days_ = getWeek(startDate)
+    rows = (lessons_by_row, side)
+
+    if mobile:
+        days_ = [(days[startDate.weekday()], f"{startDate.day}. {months[startDate.month]}"), days[startDate.weekday()]]
+        startNext = [(startDate - timedelta(days=1)).strftime('%d-%m-%Y'), (startDate + timedelta(days=1)).strftime('%d-%m-%Y')]
+
+    return render_template('tutorstvo.html', mobile=mobile, lessons=lessons, subjects=subjects, subject_db=Subject, days=days_, startNext=startNext, rows=rows, enumerate=enumerate)
 
 @views.route('/tutorstvo/add/<int:id>')
 def selectLesson(id):

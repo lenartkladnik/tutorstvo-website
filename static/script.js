@@ -74,7 +74,6 @@ function toggleSidebar() {
 function applyDateSelector() {
     const currentYear = new Date().getFullYear(); 
     const input = document.getElementById("datetime");
-    const themeLink = document.getElementById("flatpickr-theme");
 
     const isDarkMode = input.classList.contains("dark-mode");
 
@@ -105,15 +104,16 @@ function applyDateSelector() {
     });
 };
 
-var add_subject = document.getElementById("add-subject")
+var add_subject = document.getElementsByClassName("add-subject")
 
-if (add_subject){
-    add_subject.addEventListener("click", function(event) {
+for (let i = 0; i < add_subject.length; i++){
+    add_subject[i].addEventListener("click", function(event) {
         event.preventDefault();
 
         let element = document.getElementsByClassName("add-subject-form")[0];
         element.style.display = "grid";
         element.style.visibility = "visible";
+        console.log(element);
         
         buttons = document.getElementsByClassName("subject-form-button");
         for (let i = 0; i < buttons.length; i++){
@@ -137,27 +137,29 @@ if (add_subject){
         
         const currentYear = new Date().getFullYear();
 
-        flatpickr("#datetime", {
-          enableTime: true,
-          noCalendar: false, 
-          dateFormat: "d/m H:i",
-          time_24hr: true,
-          defaultDate: "today",
-          onChange: function(selectedDates, dateStr) {
-            if (selectedDates.length > 0) {
-              let date = selectedDates[0];
-              let month = String(date.getMonth() + 1).padStart(2, "0");
-              let day = String(date.getDate()).padStart(2, "0");
-              let hours = String(date.getHours()).padStart(2, "0");
-              let minutes = String(date.getMinutes()).padStart(2, "0");
+        document.getElementById("fullDatetime").value = this.dataset.date;
 
-              let fullDatetime = `${currentYear}/${day}/${month} ${hours}:${minutes}`;
-              document.getElementById("fullDatetime").value = fullDatetime;
+        // flatpickr("#datetime", {
+        //  enableTime: true,
+        //  noCalendar: false, 
+        //  dateFormat: "d/m H:i",
+        //  time_24hr: true,
+        //  defaultDate: "today",
+        //  onChange: function(selectedDates, dateStr) {
+        //    if (selectedDates.length > 0) {
+        //      let date = selectedDates[0];
+        //      let month = String(date.getMonth() + 1).padStart(2, "0");
+        //      let day = String(date.getDate()).padStart(2, "0");
+        //      let hours = String(date.getHours()).padStart(2, "0");
+        //      let minutes = String(date.getMinutes()).padStart(2, "0");
 
-              console.log("Full Datetime:", fullDatetime);
-            }
-          }
-        });
+        //      let fullDatetime = `${currentYear}/${day}/${month} ${hours}:${minutes}`;
+        //      document.getElementById("fullDatetime").value = fullDatetime;
+
+        //      console.log("Full Datetime:", fullDatetime);
+        //    }
+        //  }
+        //});
     });
 }
 
