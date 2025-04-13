@@ -197,10 +197,10 @@ input[type="submit"]:hover {
     top: 0px;
     left: 0px;
     height: 65px;
-    width: 100%;
     background-color: hsl(120, 47%, 49%);
     margin-bottom: 10px;
     box-shadow: 0.1px 0 2px 0.5px #999;
+    width: 100vw;
 
     z-index: 1001;
 }
@@ -1087,6 +1087,15 @@ li:has(> .sidebar-selected) {
     height: 160px;
 }
 
+.sub .url {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.url-container {
+    min-width: 40%;
+}
+
 @media only screen and (max-width: 600px) {
     .form h1 {
         left: calc(50% - 52px - 20px);
@@ -1245,5 +1254,9 @@ li:has(> .sidebar-selected) {
 
     .tutorstvo-arrows {
         transform: translateX(-12px);
+    }
+    
+    .url-container {
+        min-width: 96%;
     }
 }

@@ -578,7 +578,7 @@ def registerEmail():
 
         token = generate_confirmation_token(email)
 
-        confirm_url = url_for("views.confirm_email", token=token, _external=True) 
+        confirm_url = url_for("views.confirmEmail", token=token, _external=True) 
         
         content = f"""<p>Dober dan {formatTitle(current_user.username)},</p>
         

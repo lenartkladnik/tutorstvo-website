@@ -166,8 +166,8 @@
             <div class="sub-container">
                 {% for subject in subjects %}
                 {% for url in subject.get_learning_resources() %}
-                    <div class="sub" style="min-width: fit-content;">
-                        <span>{{ url }}</span>
+                    <div class="sub url-container">
+                        <span class="url">{{ url }}</span>
                         <span class="element">{{ subject.name }}</span>
                         <a href="/remove-learning-resource?url={{ url }}&subject={{ subject.name }}">
                             <img src="{{ url_for('static', filename='close.svg') }}">
