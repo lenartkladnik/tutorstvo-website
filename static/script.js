@@ -316,3 +316,18 @@ for (let i = 0; i < coll.length; i++) {
   });
 }
 
+function updateScale() {
+    const vw = window.innerWidth;
+
+    if (vw < 1700) {
+        const scale = vw / 1900;
+        week = document.getElementsByClassName("week")[0]
+        arrows = document.getElementsByClassName("tutorstvo-arrows")[0]
+
+        week.style.transform = `scale(${scale})`;
+        arrows.style.right = "0";
+    }
+}
+
+window.addEventListener("resize", updateScale);
+window.addEventListener("DOMContentLoaded", updateScale);
