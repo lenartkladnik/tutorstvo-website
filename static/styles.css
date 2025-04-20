@@ -12,6 +12,10 @@ input[type="image"].dark-mode {
     filter: invert(100%);
 }
 
+.invert.dark-mode {
+    filter: invert(100%);
+}
+
 .center {
     position: absolute;
     margin-left: 50%;
@@ -281,7 +285,7 @@ input[type="submit"]:hover {
     position: relative;
     color: inherit;
     text-decoration: none;
-    background-color: transparent;
+    background-color: rgba(0, 0, 0, 0.007);
     width: calc(100% - 20px);
     border-radius: 10px;
     border: none;
@@ -471,8 +475,10 @@ li:has(> .sidebar-selected) {
 .subject-box-grid .subscript-right {
     font-size: 16px;
     float: right;
-    width: 100px;
+    width: 120px;
     height: fit-content;
+    text-align: right;
+    margin-right: 5px;
 }
 
 .subject-box-grid .icon-right {
@@ -1045,7 +1051,7 @@ li:has(> .sidebar-selected) {
     background-color: rgba(230, 230, 230, 0.5);
 
     border-spacing: 10px;
-    margin-top: 40px;
+    margin-top: 5px;
 
     border-radius: 8px;
 
@@ -1104,6 +1110,70 @@ li:has(> .sidebar-selected) {
     position: absolute;
     right: 90px;
     top: 0
+}
+
+.search-results {
+    position: fixed;
+    display: none;
+    visibility: hidden;
+
+    width: 342px;
+    padding-bottom: 6px;
+
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+
+    background-color: white;
+    border-radius: 10px;
+
+    z-index: 1001;
+}
+
+.search-results.dark-mode {
+    background-color: #1e1e1e;
+}
+
+.search-container {
+    background-color: rgba(230, 230, 230, 0.5);
+    border-radius: 10px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+}
+
+.search-container.dark-mode {
+    background-color: rgba(19, 19, 19, 0.5);
+}
+
+.search-container .title {
+    border: none;
+    background-color: transparent;
+    cursor: pointer;
+    left: calc(50% - 26px - 10px);
+    transform: translateX(-50%);
+    position: relative;
+}
+
+.search-container .search-submit {
+    margin-left: auto;
+    margin-right: 10px;
+
+    background-repeat: no-repeat;
+    background-color: transparent;
+
+    border: none;
+    width: 26px;
+    height: 26px;
+
+    padding: 0px;
+}
+
+.search-container .search-close {
+    background-color: transparent;
+    border: none;
+    width: 26px;
+    height: 26px;
+    margin-left: 10px;
 }
 
 @media only screen and (max-width: 600px) {
@@ -1259,11 +1329,12 @@ li:has(> .sidebar-selected) {
     }
 
     .week {
-        transform: scale(0.88) translate(-25px, -60px);
+        transform: scale(0.88);
+        margin-left: 5px;
     }
 
     .tutorstvo-arrows {
-        transform: translateX(-12px);
+        transform: translateX(80px);
     }
     
     .url-container {

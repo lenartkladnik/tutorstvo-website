@@ -389,6 +389,8 @@ def tutorstvo():
 
         db.session.commit()
 
+    search = request.args.get('search', None)
+
     lessons = Lesson.query.filter(Lesson.id.notin_(current_user.getSelectedSubjects()))
     mask = list(map(lambda lesson: any(map(lambda x: x in current_user.get_groups(), lesson.get_groups())), lessons))
     lessons = [d for d, m in zip(lessons, mask) if m]
@@ -415,7 +417,6 @@ def tutorstvo():
         startDate = datetime.strptime(startDate, '%d-%m-%Y')
 
     lessons_by_column = []
-    lesson_dates = []
 
     r = 1 if mobile else 5
     for i in range(r):
@@ -442,15 +443,19 @@ def tutorstvo():
 
     startNext = [(startDate - timedelta(days=7)).strftime('%d-%m-%Y'), (startDate + timedelta(days=7)).strftime('%d-%m-%Y')]
     subjects = current_user.subjects(Subject)
+    all_subjects = Subject.query.all()
 
     days_ = getWeek(startDate)
     rows = (lessons_by_row, side)
 
     if mobile:
         days_ = [(days[startDate.weekday()], f"{startDate.day}. {months[startDate.month]}"), days[startDate.weekday()]]
-        startNext = [(startDate - timedelta(days=1)).strftime('%d-%m-%Y'), (startDate + timedelta(days=1)).strftime('%d-%m-%Y')]
+        startNext = [
+                        (startDate - timedelta(days=1) if (startDate - timedelta(days=1)).weekday() <= 4 else startDate - timedelta(days=3)).strftime('%d-%m-%Y'),
+                        (startDate + timedelta(days=1) if startDate.weekday() + 1 <= 4 else startDate + timedelta(days=3)).strftime('%d-%m-%Y')
+                    ]
 
-    return render_template('tutorstvo.html', mobile=mobile, lessons=lessons, subjects=subjects, subject_db=Subject, days=days_, startNext=startNext, rows=rows, enumerate=enumerate)
+    return render_template('tutorstvo.html', mobile=mobile, search=search, lessons=lessons, subjects=subjects, all_subjects=all_subjects, subject_db=Subject, days=days_, startNext=startNext, rows=rows, enumerate=enumerate)
 
 @views.route('/tutorstvo/add/<int:id>')
 def selectLesson(id):

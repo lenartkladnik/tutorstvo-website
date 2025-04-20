@@ -10,6 +10,12 @@
 {% else %}
 <div class="main" style="width: 88%;">
 {% endif %}
+    <div class="tutorstvo-search">
+        <a href="#" style="cursor: pointer;">
+            <img src="{{ url_for('static', filename='search.svg') }}" class="icon">
+        </a>
+    </div>
+
     <div class="right tutorstvo-arrows">
         <a onclick="window.location.href='tutorstvo?date={{ startNext[0] }}'" style="cursor: pointer;">
             <img src="{{ url_for('static', filename='arrow_backward.svg') }}" class="icon">
@@ -73,24 +79,10 @@
                         </a>
                     {% endif %}
 
-                    <div class="subject-box-grid">
-                        <div style="display: flex;">
-                            <span class="title">{{ lesson.subject }}</span>
-                            <span class="classroom">{{ lesson.classroom }}</span>
-                        </div>
-
-                        <div style="display: float;">
-                            <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
-                            <span class="subscript-left">{{ lesson.filled }}/{{ lesson.min }}+</span>
-                        </div>
-                    </div>
-                    <span class="description">
-                        {{ lesson.description }}
-                    </span>
-
-                    <span class="tutors">{{ lesson.tutors(subject_db) }}</span>
+                    {% set show_date = False %}
+                    {% include "subject_snippet.html" %}
                 </div>
-                
+
                 {% elif current_user.is_tutor() or current_user.is_admin() %}
                 <a href="#" class="add-subject" data-date="{{ date }}"></a>
                 {% endif %}
@@ -152,7 +144,52 @@
 </form>
 {% endif %}
 
+<form action="tutorstvo" id="search-results-form">
+    <div class="search-results">
+        <div style="display: flex; margin-bottom: 20px;" class="search-container">
+            <a href="/tutorstvo" class="close-search-results" style="align-content: center;">
+                <img src="{{ url_for('static', filename='close.svg') }}" class="search-close" >
+            </a>
+
+            <select class="title" name="search" style="margin-right: 20px; text-align: center; color: inherit;">
+                {% if not search %}
+                <option value="" selected disabled hidden>Izberite predmet</option>
+                {% endif %}
+                {% for subject in all_subjects %}
+                <option {{ 'selected' if subject.name == search else '' }} value="{{ subject.name }}">{{ subject.name.upper() }}</option>
+                {% endfor %}
+            </select>
+
+            <input type="submit" id="search-submit" value="" class="search-submit invert" style="background-image: url({{ url_for('static', filename='search.svg') }});" />
+        </div>
+
+        <div class="results" style="margin-left: 10px;">
+            {% for lesson in lessons %}
+            {% if lesson.subject == search %}
+                <div class="subject-box" onclick="window.location.href='tutorstvo/add/{{ lesson.id }}'" style="cursor: pointer; margin-bottom: 4px;">
+                    {% if lesson.subject.lower() in subjects %}
+                        <a href="remove-lesson/{{ lesson.id }}" class="remove-lesson">
+                            <img src="{{ url_for('static', filename='remove.svg') }}">
+                        </a>
+                    {% endif %}
+
+                    {% set show_date = True %}
+                    {% include "subject_snippet.html" %}
+
+                </div>
+
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</form>
+
 {% endblock %}
 {% block script %}
+{% if search %}
+<script>
+    document.getElementsByClassName('tutorstvo-search')[0].click();
+</script>
+{% endif %}
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 {% endblock %}

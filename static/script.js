@@ -1,5 +1,8 @@
 const darkModeEnabled = document.body.dataset.darkMode === 'true';
 
+const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+
 document.addEventListener('DOMContentLoaded', function() {    
     if (darkModeEnabled) {
         toggleDarkMode();
@@ -113,7 +116,6 @@ for (let i = 0; i < add_subject.length; i++){
         let element = document.getElementsByClassName("add-subject-form")[0];
         element.style.display = "grid";
         element.style.visibility = "visible";
-        console.log(element);
         
         buttons = document.getElementsByClassName("subject-form-button");
         for (let i = 0; i < buttons.length; i++){
@@ -197,6 +199,52 @@ if (close_add_subject){
         document.getElementsByClassName("close-add-subject")[0].style.visibility = "hidden";
     });
 }
+
+var search = document.getElementsByClassName("tutorstvo-search")[0];
+
+search.addEventListener("click", function(event) {
+    event.preventDefault();
+
+    let element = document.getElementsByClassName("search-results")[0];
+    element.style.display = "grid";
+    element.style.visibility = "visible";
+        
+    let main = document.getElementsByClassName("main")[0]
+    main.style.filter = "blur(1.2px)";
+    main.style.pointerEvents = "none";
+
+    let top_bar = document.getElementsByClassName("topbar")[0]
+    top_bar.style.filter = "blur(1.2px)";
+    top_bar.style.pointerEvents = "none";
+        
+    let sidebar = document.getElementsByClassName("sidebar")[0]
+    sidebar.style.filter = "blur(1.2px)";
+    sidebar.style.pointerEvents = "none";
+
+    document.getElementsByClassName("close-search-results")[0].style.visibility = "visible";
+});
+
+var closeSearch = document.getElementsByClassName("close-search-results")[0];
+
+closeSearch.addEventListener("click", function(event) {
+    let element = document.getElementsByClassName("search-results")[0];
+    element.style.display = "none";
+    element.style.visibility = "hidden";
+
+    let main = document.getElementsByClassName("main")[0]
+    main.style.filter = "none";
+    main.style.pointerEvents = "auto";
+
+    let top_bar = document.getElementsByClassName("topbar")[0]
+    top_bar.style.filter = "none";
+    top_bar.style.pointerEvents = "auto";
+
+    let sidebar = document.getElementsByClassName("sidebar")[0]
+    sidebar.style.filter = "none";
+    sidebar.style.pointerEvents = "auto";
+
+    document.getElementsByClassName("close-search-results")[0].style.visibility = "hidden";
+});
 
 function registerInput(input){
     input.addEventListener('input', function () {
@@ -319,7 +367,7 @@ for (let i = 0; i < coll.length; i++) {
 function updateScale() {
     const vw = window.innerWidth;
 
-    if (vw < 1700) {
+    if (vw < 1700 && !mobile) {
         const scale = vw / 1900;
         week = document.getElementsByClassName("week")[0]
         arrows = document.getElementsByClassName("tutorstvo-arrows")[0]
@@ -331,3 +379,14 @@ function updateScale() {
 
 window.addEventListener("resize", updateScale);
 window.addEventListener("DOMContentLoaded", updateScale);
+
+function linkSelectRedirect(element, argName) {
+    value = element.value;
+
+    if (value) {
+        currentLocation = window.location.href;
+        const param = `${argName}=${encodeURIComponent(value)}`;
+
+        window.location.href = `${currentLocation}?${param}`;
+    }
+}
