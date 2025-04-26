@@ -210,7 +210,17 @@ def adminPanel():
     group_ids = [group.id for group in Group.query.all()]
     users = User.query.all()
 
-    return render_template("admin_panel.html", admins=admins, users=users, tutors=zip(list(map(lambda tutor: tutor.tutor_for(Subject), tutors)), tutors), subjects=subjects, groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
+    return render_template("admin_panel.html", admins=admins, users=users, tutors=zip(list(map(lambda tutor: tutor.tutor_for(Subject), tutors)), tutors), subjects=subjects, subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
+
+@views.route('/remove-user/<id>')
+@admin_required
+def remove_user(id):
+    user = User.query.filter_by(id=id).first()
+    db.session.delete(user)
+
+    db.session.commit()
+
+    return redirect(request.referrer)
 
 @views.route('/add-subject', methods=['GET', 'POST'])
 @admin_required

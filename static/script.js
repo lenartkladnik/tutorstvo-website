@@ -202,6 +202,7 @@ if (close_add_subject){
 
 var search = document.getElementsByClassName("tutorstvo-search")[0];
 
+if (search) {
 search.addEventListener("click", function(event) {
     event.preventDefault();
 
@@ -245,6 +246,7 @@ closeSearch.addEventListener("click", function(event) {
 
     document.getElementsByClassName("close-search-results")[0].style.visibility = "hidden";
 });
+}
 
 function registerInput(input){
     input.addEventListener('input', function () {
@@ -296,7 +298,7 @@ if (addSubjectBtn && removeSubjectBtn && subjectsContainer && hold_subjects){
         newSelect.setAttribute('name', 'subjects[]');
         newSelect.setAttribute('class', darkModeEnabled ? 'element dark-mode': 'element');
         newSelect.setAttribute('required', '');
-    
+
         subjects.forEach(function(subject) {
             const option = document.createElement('option');
             option.setAttribute('value', subject);
@@ -326,7 +328,12 @@ function addGroupBtn(id) {
     newSelect.setAttribute('class', darkModeEnabled ? 'element dark-mode': 'element');
     newSelect.setAttribute('style', 'width: 15ch; text-transform: none;');
     newSelect.setAttribute('required', '');
-    
+
+    const firstOption = document.createElement('option');
+    firstOption.setAttribute('value', '');
+    firstOption.textContent = 'IZBERITE';
+    newSelect.appendChild(firstOption);
+
     groups.forEach(function(group) {
         const option = document.createElement('option');
         option.setAttribute('value', group);
@@ -335,18 +342,25 @@ function addGroupBtn(id) {
     });
     
     groupsContainer.appendChild(newSelect);
-  
+
+    newSelect.addEventListener('change', function() {
+        if (this.value) {
+            document.getElementById(`users-form-${id}`).submit();
+        }
+    });
+
 }
 
 function removeGroupBtn(id) {
     const groupsContainer = document.getElementById(`groups-container-${id}`);
 
     const selects = groupsContainer.getElementsByTagName('select');
-        
+
     if (selects.length > 1) {
         groupsContainer.removeChild(selects[selects.length - 1]);
     }
 
+    document.getElementById(`users-form-${id}`).submit();
 }
 
 var coll = document.getElementsByClassName("expand");
@@ -367,13 +381,15 @@ for (let i = 0; i < coll.length; i++) {
 function updateScale() {
     const vw = window.innerWidth;
 
-    if (vw < 1700 && !mobile) {
+    if (vw < 1700 && !isMobile) {
         const scale = vw / 1900;
         week = document.getElementsByClassName("week")[0]
         arrows = document.getElementsByClassName("tutorstvo-arrows")[0]
-
+        
+        if (week) {
         week.style.transform = `scale(${scale})`;
         arrows.style.right = "0";
+        }
     }
 }
 

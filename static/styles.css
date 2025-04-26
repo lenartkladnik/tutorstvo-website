@@ -1,6 +1,6 @@
 body {
     font-family: 'Inter', 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
-    background-color: hsl(120, 40%, 96%);
+    background-color: hsla(120, 75%, 87.5%, 0.55);
     overflow-x: hidden; 
 }
 
@@ -203,7 +203,7 @@ input[type="submit"]:hover {
     top: 0px;
     left: 0px;
     height: 65px;
-    background-color: hsl(120, 47%, 49%);
+    background-color: hsl(120, 77.7%, 40.4%);
     margin-bottom: 10px;
     box-shadow: 0.1px 0 2px 0.5px #999;
     width: 100vw;
@@ -233,7 +233,7 @@ input[type="submit"]:hover {
     bottom: 0;
     right: 0;
     overflow: hidden;
-    background-color: hsl(120, 60%, 94%);
+    background-color: hsla(120, 69.6%, 78%, 0.5);
     
     z-index: 1000;
 }
@@ -458,6 +458,7 @@ li:has(> .sidebar-selected) {
 
 .subject-box-grid .classroom.dark-mode{
     color: black;
+    background-color: hsla(276.2, 72.2%, 78.8%, 0.73);
 }
 
 .subject-box-grid .subscript-left {
@@ -709,8 +710,8 @@ li:has(> .sidebar-selected) {
 }
 
 .sub {
-    flex: 1 1 calc(20% - 10px);
-    max-width: calc(20% - 10px);
+    flex: 1 1 fit-content;
+    max-width: fit-content;
     
     display: inline-flex;
     align-items: center;
@@ -1059,7 +1060,7 @@ li:has(> .sidebar-selected) {
 }
 
 .week.dark-mode {
-    color: white;
+    color: #9f9f9f;
     background-color: rgba(19, 19, 19, 0.5);
 }
 
@@ -1097,6 +1098,10 @@ li:has(> .sidebar-selected) {
     height: 160px;
 }
 
+.week .lesson-display.dark-mode {
+    background-color: rgba(60, 59, 59, 0.24);
+}
+
 .sub .url {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1108,8 +1113,8 @@ li:has(> .sidebar-selected) {
 
 .tutorstvo-arrows {
     position: absolute;
-    right: 90px;
-    top: 0
+    right: 20px !important;
+    top: 20px;
 }
 
 .search-results {
@@ -1335,6 +1340,7 @@ li:has(> .sidebar-selected) {
 
     .tutorstvo-arrows {
         transform: translateX(80px);
+        right: 90px !important;
     }
     
     .url-container {
