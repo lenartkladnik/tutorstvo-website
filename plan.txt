@@ -1,6 +1,0 @@
-/learning-resources
-
-Subjects:
-  - Links
-  - ? Učni listi, ...
-
