@@ -1,5 +1,7 @@
 import itsdangerous
 
+DATETIME_FORMAT_JS = "%Y/%d/%m"
+DATETIME_FORMAT_PY = '%d-%m-%Y'
 
 secrets: dict = {}
 _secrets_fp = '.secrets'
@@ -28,7 +30,7 @@ def formatTitle(title: str) -> str:
     return ', '.join(f)
 
 def generate_confirmation_token(email):
-    token = serializer.dumps(email, salt=f"confirm-email") 
+    token = serializer.dumps(email, salt=f"confirm-email")
     return token
 
 def confirm_token(token):

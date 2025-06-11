@@ -1,9 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager
 from flask import Flask
 from flask_mail import Mail
 from flask_caching import Cache
 from resources import secrets
+from identity.flask import Auth
+import app_config
 
 app = Flask(__name__)
 
@@ -28,5 +29,21 @@ app.config['CACHE_REDIS_HOST'] = 'localhost'
 app.config['CACHE_REDIS_PORT'] = 6379
 
 db = SQLAlchemy(app)
-login_manager = LoginManager(app)
 cache = Cache(app)
+
+from models import User, Subject, Lesson, Group # Needed because of db creation ->
+                                                # SQLAlchemy won't create the db
+                                                # tables if they aren't imported
+
+with app.app_context():
+    db.create_all()
+
+app.config.from_object(app_config)
+
+auth = Auth(
+    app,
+    authority=app.config["AUTHORITY"],
+    client_id=app.config["CLIENT_ID"],
+    client_credential=app.config["CLIENT_SECRET"],
+    redirect_uri=app.config["REDIRECT_URI"]
+)

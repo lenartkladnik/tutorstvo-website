@@ -1,15 +1,7 @@
-from views import views
 from waitress import serve
-from extensions import db, login_manager, app
-from resources import secrets
+from extensions import app
 
-app.config["SECRET_KEY"] = secrets['db']
-
-login_manager.login_view = "views.login"  
-
-with app.app_context():
-    db.create_all()
-
+from views import views
 app.register_blueprint(views, url_prefix="/")
 
 @app.errorhandler(404)

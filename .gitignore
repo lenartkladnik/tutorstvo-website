@@ -1,5 +1,7 @@
 *.secrets
 *.db
 .venv
+flask_session
+instance
 **/__pycache__/
 tests

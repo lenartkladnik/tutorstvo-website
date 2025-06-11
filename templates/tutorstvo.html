@@ -18,12 +18,18 @@
     </div>
 
     <div class="right tutorstvo-arrows">
+        {% if startNext[0] %}
         <a onclick="window.location.href='tutorstvo?date={{ startNext[0] }}'" style="cursor: pointer;">
             <img src="{{ url_for('static', filename='arrow_backward.svg') }}" class="icon">
         </a>
+        {% endif %}
 
         <a onclick="window.location.href='tutorstvo?date={{ startNext[1] }}'" style="cursor: pointer;">
             <img src="{{ url_for('static', filename='arrow_forward.svg') }}" class="icon">
+        </a>
+
+        <a onclick="window.location.href='tutorstvo'" style="cursor: pointer;">
+            <img src="{{ url_for('static', filename='calendar.svg') }}" class="icon">
         </a>
     </div>
 
@@ -68,12 +74,17 @@
             </th>
 
             <th></th>
-            
-            {% for date, lesson in rows[0][i] %}
-            <th class="lesson-display">
-                {% if lesson %}
 
-                <div class="subject-box" onclick="window.location.href='tutorstvo/add/{{ lesson.id }}'" style="cursor: pointer;">
+            {% set max_len, row_data = rows[0][i] %}
+            {% for row_lessons in row_data %}
+            {% set tracker = namespace(was_lesson=False,date=None) %}
+            <th class="lesson-display">
+                {% for data in row_lessons %}
+                {% set tracker.date, lesson = data %}
+
+                {% if lesson %}
+                {% set tracker.was_lesson = True %}
+                <div class="subject-box" onclick="{{ '' if lesson.filled >= lesson.max else 'window.location.href=\'tutorstvo/add/' + str(lesson.id) + '\'' }}" style="cursor: pointer;">
                     {% if lesson.subject.lower() in subjects %}
                         <a href="remove-lesson/{{ lesson.id }}" class="remove-lesson">
                             <img src="{{ url_for('static', filename='remove.svg') }}">
@@ -83,9 +94,14 @@
                     {% set show_date = False %}
                     {% include "subject_snippet.html" %}
                 </div>
+                {% endif %}
 
-                {% elif current_user.is_tutor() or current_user.is_admin() %}
-                <a href="#" class="add-subject" data-date="{{ date }}"></a>
+                {% endfor %}
+
+                {% if current_user.is_tutor(subject_db) or current_user.is_admin() %}
+                {% for _ in range(max_len - len(row_lessons) + 1) %}
+                <a href="#" class="add-subject" data-date="{{ tracker.date }}"></a>
+                {% endfor %}
                 {% endif %}
             </th>
             {% endfor %}
@@ -94,9 +110,9 @@
     </table>
 </div>
 
-{% if current_user.is_tutor() or current_user.is_admin() %}
+{% if current_user.is_tutor(subject_db) or current_user.is_admin() %}
 <form method="POST" id="subject-form">
-    <div class="add-subject-form">
+    <div class="add-subject-form" data-frcls="{{ free_classrooms }}">
         <div class="subject-box-grid">
           <div style="display: flex;">
                 <select class="title" name="title" required>
@@ -104,19 +120,19 @@
                     <option value="{{ subject }}">{{ subject }}</option>
                     {% endfor %}
                 </select>
-                <input class="classroom" placeholder="Kje" maxlength="3" name="classroom" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                <!-- <input class="classroom" placeholder="Kje" maxlength="3" name="classroom" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /> --!>
+                <select class="classroom element" style="width: 80px;" name="classroom" id="classroom-selector" required></select>
             </div>
 
             <div style="display: float;">
                 <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
                 <div class="subscript-left" style="display: flex; justify-content: start;">
                     <span>0/</span>
-                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" name="cap" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-                    <span>+</span>
+                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" name="min" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                    <span>-</span>
+                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" name="max" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
                 </div>
-                <!-- <img src="{{ url_for('static', filename='calendar.svg') }}" class="icon-right" style="float: right;"> --!>
                 <input type="hidden" name="datetime" id="fullDatetime" required />
-                <!-- <input class="subscript-right" type="text" id="datetime" placeholder="DD/MM HH:MM" required /> --!>
             </div>
         </div>
 

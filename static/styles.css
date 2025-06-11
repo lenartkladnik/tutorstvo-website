@@ -400,6 +400,7 @@ li:has(> .sidebar-selected) {
     position: relative;
     
     border-radius: 10px;
+    margin-bottom: 5px;
     
     border-color: hsl(0, 0%, 61%);
     color: black;
@@ -457,7 +458,7 @@ li:has(> .sidebar-selected) {
 }
 
 .subject-box-grid .classroom.dark-mode{
-    color: black;
+    color: #1d1d1d;
     background-color: hsla(276.2, 72.2%, 78.8%, 0.73);
 }
 
@@ -1096,6 +1097,8 @@ li:has(> .sidebar-selected) {
 
     min-width: 320px;
     height: 160px;
+
+    vertical-align: top;
 }
 
 .week .lesson-display.dark-mode {
@@ -1115,6 +1118,10 @@ li:has(> .sidebar-selected) {
     position: absolute;
     right: 20px !important;
     top: 20px;
+}
+
+.tutorstvo-search {
+    width: fit-content;
 }
 
 .search-results {

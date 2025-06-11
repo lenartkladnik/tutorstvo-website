@@ -60,7 +60,7 @@
         </div>
 
         <div class="sub-panel">
-            <h1>Subject</h1>
+            <h1>Subjects</h1>
             <div class="sub-container">
                 {% for subject in subjects %}
                     <div class="sub">
@@ -80,7 +80,7 @@
         </div>
         
         <div class="sub-panel">
-          <h1>Group</h1>
+          <h1>Groups</h1>
               <div class="sub-container">
                 {% for id, group in zip(group_ids, groups) %}
                     <div class="sub">
@@ -139,9 +139,8 @@
                             <div id="groups-container-{{ user.id }}">
                                 {% for group in user.get_groups() %}
                                 <select class="element users-select" name="groups[]" style="width: 15ch; text-transform: none;" required>
-                                    <option value="{{ group }}" selected>{{ group }}</option> 
                                     {% for sub_group in list(set(groups) - set(group)) %}
-                                        <option value="{{ sub_group }}">{{ sub_group }}</option>
+                                        <option value="{{ sub_group }}" {{ 'selected' if sub_group == group else '' }}>{{ sub_group }}</option>
                                     {% endfor %}
                                 </select>
                                 {% endfor %}
@@ -151,6 +150,8 @@
                                 <span class="text" style="font-size: 22px; cursor: pointer;">+</span>
                            </a>
                         </div>
+
+                        <input type="image" src="{{ url_for('static', filename='sync.svg') }}" />
 
                         <input type="hidden" id="hold_groups-{{ user.id }}" value="{{ groups }}">
                     </form>

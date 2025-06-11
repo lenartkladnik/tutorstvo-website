@@ -62,12 +62,6 @@
                         <span class="sidebar-text">Učna sredstva</span>
                     </a>
                 </li>
-                <li>
-                    <a href="account" class="sidebar-link">
-                        <img src="{{ url_for('static', filename='account.svg') }}" class="sidebar-icon">
-                        <span class="sidebar-text">Account</span>
-                    </a>
-                </li>
                 {% if current_user.is_admin() %}
                 <li>
                     <a href="admin-panel" class="sidebar-link">

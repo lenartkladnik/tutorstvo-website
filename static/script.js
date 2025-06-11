@@ -3,20 +3,115 @@ const darkModeEnabled = document.body.dataset.darkMode === 'true';
 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
 
+const all_classrooms = ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj"]
+const always_free = ["knj"]
+
 document.addEventListener('DOMContentLoaded', function() {    
     if (darkModeEnabled) {
         toggleDarkMode();
     }
 });
 
+function getFreeForDate(date, schedule, hour) {
+  if (hour == "PRE" || hour == "O") {
+    return all_classrooms;
+  }
+
+  hour = Number(hour);
+
+  const slovenianDays = [
+    "Nedelja",
+    "Ponedeljek",
+    "Torek",
+    "Sreda",
+    "četrtek",
+    "Petek",
+    "Sobota"
+  ];
+
+  const schoolYearStart = new Date(date.getFullYear(), 8, 1);
+
+  if (date < schoolYearStart) {
+    schoolYearStart.setFullYear(schoolYearStart.getFullYear() - 1);
+  }
+
+  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+  const weekDiff = Math.floor((date - schoolYearStart) / msPerWeek);
+
+  const weekType = (weekDiff % 2 === 0) ? "A" : "B";
+
+  const dayName = slovenianDays[date.getDay()];
+
+  const indices = [];
+  for (let i = 0; i < schedule.length; i++) {
+    const entry = schedule[i];
+    if (entry[0] === weekType && entry[1] === dayName) {
+      indices.push(i);
+    }
+  }
+
+  const free = schedule[indices[hour]];
+  if (!free) return all_classrooms;
+
+  free.push(always_free);
+  free[3] = [...free[3], ...free[4]];
+  free.pop();
+
+  return free[3];
+}
+
+function parseDate(dateStr) {
+  const [datePart, timePart] = dateStr.split(' ');
+  const [yearStr, dayStr, monthStr] = datePart.split('/');
+  const [hourStr, minuteStr] = timePart.split(':');
+
+  const year = parseInt(yearStr, 10);
+  const day = parseInt(dayStr, 10);
+  const month = parseInt(monthStr, 10) - 1;
+  const hour = parseInt(hourStr, 10);
+  const minute = parseInt(minuteStr, 10);
+
+  return new Date(year, month, day, hour, minute);
+}
+
+function parseHour(dateStr) {
+  const periods = [
+    { label: 'PRE', start: '7:10', end: '7:55' },
+    { label: 'O',   start: '10:25', end: '10:55' },
+    { label: '6',   start: '12:40', end: '13:25' },
+    { label: '7',   start: '13:30', end: '14:15' },
+    { label: '8',   start: '14:20', end: '15:05' },
+  ];
+
+  date = parseDate(dateStr);
+
+  function createDateWithTime(timeStr) {
+    const [h, m] = timeStr.split(':').map(Number);
+    const d = new Date(date);
+    d.setHours(h, m, 0, 0);
+    return d;
+  }
+
+  for (const period of periods) {
+    const start = createDateWithTime(period.start);
+    const end = createDateWithTime(period.end);
+
+    if (date >= start && date <= end) {
+      return period.label;
+    }
+  }
+
+  return null;
+}
+
 function toggleDarkMode() {
     var elements = document.getElementsByTagName("*");
-    
+
     for (let i = 0; i < elements.length; i++){
         var element = elements[i]
         element.classList.toggle("dark-mode");
     }
-    
+
     var toggle = document.getElementById('toggle-dark-mode')
     if (document.body.dataset.darkMode === 'true'){
         toggle.src = "static/light_mode.svg"
@@ -31,7 +126,7 @@ function toggleDarkMode() {
     else{
         toggle.src = "static/dark_mode.svg"
         document.body.data_dark_mode = "false"
-        
+
         document.querySelectorAll('previewbox-link').forEach(el => {
             el.style.setProperty('--pb-text-color', 'white');
             el.style.setProperty('--pb-text-color-light', 'white');
@@ -116,13 +211,23 @@ for (let i = 0; i < add_subject.length; i++){
         let element = document.getElementsByClassName("add-subject-form")[0];
         element.style.display = "grid";
         element.style.visibility = "visible";
-        
+
+        const free_cls = JSON.parse(element.dataset.frcls);
+
+        const cls_opts = getFreeForDate(parseDate(this.dataset.date), free_cls, parseHour(this.dataset.date));
+        console.log(cls_opts);
+        const cls_sel = document.getElementById("classroom-selector");
+        cls_sel.options = [];
+        for (var i = 0; i < cls_opts.length; i++) {
+            cls_sel.options[cls_sel.options.length] = new Option(cls_opts[i], cls_opts[i]);
+        }
+
         buttons = document.getElementsByClassName("subject-form-button");
         for (let i = 0; i < buttons.length; i++){
             buttons[i].style.visibility = "visible";
             buttons[i].style.display = "block";
         }
-        
+
         let main = document.getElementsByClassName("main")[0]
         main.style.filter = "blur(1.2px)";
         main.style.pointerEvents = "none";
@@ -130,13 +235,13 @@ for (let i = 0; i < add_subject.length; i++){
         let top_bar = document.getElementsByClassName("topbar")[0]
         top_bar.style.filter = "blur(1.2px)";
         top_bar.style.pointerEvents = "none";
-        
+
         let sidebar = document.getElementsByClassName("sidebar")[0]
         sidebar.style.filter = "blur(1.2px)";
         sidebar.style.pointerEvents = "none";
 
         document.getElementsByClassName("close-add-subject")[0].style.visibility = "visible";
-        
+
         const currentYear = new Date().getFullYear();
 
         document.getElementById("fullDatetime").value = this.dataset.date;
