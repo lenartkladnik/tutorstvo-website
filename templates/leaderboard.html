@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="main">
+<h1 class="lb-title">Lestvica</h1>
+<div class="lb-container">
+    {% for tutor, i, size, score in lb %}
+    <span class="place">#{{ i }}</span>
+    {% if i == 1 %}
+    <img class="crown noInvert" src="{{ url_for('static', filename='crown.png') }}">
+    {% endif %}
+    <span class="tutor-name">{{ tutor }}</span>
+    <div class="place-vis" style="width: {{ max_w }}px; background-image: linear-gradient(to right, var(--faint-main-color) {{ size }}%, rgba(0,0,0,0) {{ size }}%)"></div>
+    <span class="score">{{ score }}</span>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

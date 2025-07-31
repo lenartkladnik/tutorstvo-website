@@ -1,7 +1,15 @@
 import itsdangerous
+from datetime import datetime
+import os
+from functools import wraps
+from flask import abort
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
+log_dir = 'logs'
+if not os.path.isdir(log_dir):
+    os.mkdir(log_dir)
+LOG_PATH = os.path.join(log_dir, f'tutorstvo-{datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.log')
 
 secrets: dict = {}
 _secrets_fp = '.secrets'
@@ -16,7 +24,14 @@ try:
                 secrets.update({ln[0]: ln[1]})
 
 except FileNotFoundError:
-    raise RuntimeError(f"Secret key file '{_secrets_fp}' not found.")
+    raise RuntimeError(f"Settings file '{_secrets_fp}' not found.")
+
+DEBUG = secrets['DEBUG']
+if DEBUG.isdigit():
+    DEBUG = int(DEBUG)
+
+else:
+    raise RuntimeError(f"DEBUG must be an int.")
 
 serializer = itsdangerous.URLSafeTimedSerializer(secrets['db'])
 
@@ -46,3 +61,33 @@ def confirm_token(token):
         return False 
     except itsdangerous.BadSignature:
         return False
+
+def log(message: str, log_path: str, log_type: str = 'info'):
+    current_time = datetime.now().strftime("%H:%M:%S")
+
+    log_string = f"[{current_time}] {log_type.upper()} \"{log_path}\": {message}"
+
+    if log_type == 'warn' or log_type == 'warning':
+        print('\x1b[38;5;202m', end='')
+
+    elif log_type == 'err' or log_type == 'error':
+        print('\x1b[38;5;160m', end='')
+
+    print(log_string, '\x1b[0m', sep='')
+
+    with open(LOG_PATH, 'a') as f:
+        f.write(log_string + '\n')
+
+def debug_only(func):
+    """
+    Run the function only if the app is running in debug mode.
+    """
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        if DEBUG > 0:
+            return func(*args, **kwargs)
+
+        return abort(404)
+
+    return wrapper

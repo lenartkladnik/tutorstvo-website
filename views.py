@@ -1,11 +1,11 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, request
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from werkzeug.security import check_password_hash
 from forms import AdminForm
 from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, secrets
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, secrets, log, debug_only, DEBUG
 from datetime import datetime, timedelta
 import csv
 
@@ -15,12 +15,14 @@ def current_user(ctx) -> User:
     username = ctx["user"].get("name")
     email = ctx["user"].get("preferred_username")
 
-    user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(email=email).first()
 
     if not user:
         new_user = User(username=username, email=email)
         db.session.add(new_user)
         db.session.commit()
+
+        log(f"Created new user entry with {username=}, {email=}.", "views.current_user")
 
         user = new_user
 
@@ -44,16 +46,18 @@ def sendEmail(subject: str = '', recipients: list[str] | None = None, content: s
     if recipients:
         msg = Message(
             subject=f'[Tutorstvo]: {subject}',
-            sender='tutorstvo@kladnik.cc',
+            sender=current_app.config['MAIL_ADDRESS'],
             recipients=recipients,
             html=render_template('email.html', content=content, title=heading)
         )
 
         try:
             mail.send(msg)
+            log(f"Sent email to {recipients=}.", "views.sendEmail")
 
             return ''
         except Exception as e:
+            log(f"Error whilst sending email: {e}", "views.sendEmail", "error")
             return f'Error whilst sending email: {e}'
 
 def getEmails(usernames: list[str]) -> list[str]:
@@ -82,7 +86,9 @@ def admin_required(func):
             flash("You must be logged in to access this page.", "danger")
             return redirect(url_for('views.home'))
 
-        if current_user(context).is_admin():
+        user = current_user(context)
+        if user.is_admin():
+            log(f"Admin route accessed by {user.username} ({user.email}).", "views.admin_required")
             return func(*args, context=context, **kwargs)
 
         flash("You must be an admin to access this page.", "danger")
@@ -111,12 +117,45 @@ def tutor_required(func):
 
     return wrapper
 
+def fake_login(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        return func(*args, context={'user': {'name': 'Debug User', 'preferred_username': 'lenart@kladnik.cc'}}, **kwargs)
+
+    return wrapper
+
 def login_required(func):
     """
     Rename auth.login_required to login_required
     """
 
-    return auth.login_required(func)
+    if DEBUG < 2:
+        return auth.login_required(func)
+
+    else:
+        return fake_login(func)
+
+@views.route('/new_user')
+@debug_only
+def new_user_debug():
+    current_user({'user': { 'name': request.args.get('username'), 'preferred_username': request.args.get('email')}})
+
+    return redirect(url_for('views.home'))
+
+@views.route('/test_email')
+@debug_only
+def send_email_debug():
+    sendEmail('Test', ['lenart.kladnik@gmail.com'], f'This is a test email. Sent at {datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.')
+
+    return redirect(url_for('views.home'))
+
+@views.route('/score/<int:sc>/<int:id>')
+@debug_only
+def score_debug(sc, id):
+    User.query.filter_by(id=id).first().score = sc
+    db.session.commit()
+
+    return redirect(url_for('views.leaderboard'))
 
 @views.route('/')
 @login_required
@@ -144,21 +183,43 @@ def requestAdmin(*, context):
         hash = secrets['admin-password']
 
         if check_password_hash(hash, form.password.data):
-            user = User.query.filter_by(username=current_user(context).username).first()
+            user = current_user(context)
             user.role = 'admin'
             db.session.commit()
 
-            print(f"Made '{current_user(context).username}' admin.")
-            return redirect(url_for('views.home'))
+            log(f"Made {user.username} ({user.email}) an administrator.", "views.requestAdmin")
+
+            return redirect(url_for("views.adminPanel"))
+
         else:
             flash("Wrong password", "danger")
 
     return render_template("admin.html", current_user=current_user(context), form=form)
 
-@views.route('/admin-panel')
+@views.route('/admin-panel', methods=['GET', 'POST'])
 @login_required
 @admin_required
 def adminPanel(*, context):
+    if request.method == 'POST':
+        form = request.form
+        session['manage_user_id'] = form.get('manage_user_id')
+        session['remove_user_id'] = form.get('remove_user_id')
+        session['tutor_manage_id'] = form.get('tutor_manage_id')
+
+        filter_data = {}
+        if form.get('filter-include-year'):
+            filter_data.update({'year': form.getlist('filter-year')})
+
+        if form.get('filter-include-tutor'):
+            filter_data.update({'tutor-for': form.getlist('filter-tutor-for')})
+
+        if form.get('filter-include-other'):
+            filter_data.update({'is-admin': form.get('filter-is-admin') == 'on'})
+
+        session['filter_data'] = filter_data
+
+        return redirect(url_for('views.adminPanel'))
+
     admins = User.query.filter_by(role="admin").all()
     tutors = [user for user in User.query.all() if user.tutor_for(Subject) != []]
     subjects = Subject.query.all()
@@ -166,16 +227,107 @@ def adminPanel(*, context):
     group_ids = [group.id for group in Group.query.all()]
     users = User.query.all()
 
-    return render_template("admin_panel.html", current_user=current_user(context), admins=admins, users=users, tutors=zip(list(map(lambda tutor: tutor.tutor_for(Subject), tutors)), tutors), subjects=subjects, subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
+    manage_user_id = session.pop('manage_user_id', None)
+    remove_user_id = session.pop('remove_user_id', None)
+    tutor_manage_id = session.pop('tutor_manage_id', None)
+    filter_data = session.pop('filter_data', None)
 
-@views.route('/remove-user/<id>')
+    users_filtered = []
+    if filter_data:
+        for user in users:
+            year_f = filter_data.get('year', None)
+            tutor_f = filter_data.get('tutor-for', None)
+            admin_f = filter_data.get('is-admin', None)
+
+            if year_f and user.get_year() not in year_f:
+                continue
+
+            if tutor_f and len(set(tutor_f) - set(user.tutor_for(Subject))) > 0:
+                continue
+
+            if admin_f != None and user.is_admin() != admin_f:
+                continue
+
+            users_filtered.append(user)
+    else:
+        users_filtered = users
+
+    return render_template("admin_panel.html", current_user=current_user(context), users_filtered=users_filtered, int=int, len=len, admins=admins, users=users, User=User, tutor_manage_id=tutor_manage_id, remove_user_id=remove_user_id, manage_user_id=manage_user_id, tutors=zip(list(map(lambda tutor: tutor.tutor_for(Subject), tutors)), tutors), subjects=subjects, subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
+
+@views.route('/modify-user/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def modify_user(*, context, id):
+    form = request.form
+
+    if form:
+        user = User.query.filter_by(id=id).first()
+
+        is_admin = form.get('is-admin')
+        year = form.get('year')
+        tutor_for = form.getlist('tutor-for')
+
+        if is_admin == 'on':
+            user.role = 'admin'
+
+        else:
+            user.role = 'user'
+
+        if year:
+            user.groups = year
+
+        if tutor_for:
+            for subject in Subject.query.all():
+                s = Subject.query.filter_by(name=subject.name).first()
+
+                if subject.name in tutor_for:
+                    s.tutors = ','.join(list(set(s.get_tutors() + [user.username])))
+
+                else:
+                    s.tutors = ','.join(list(set(s.get_tutors()) - set([user.username])))
+
+        db.session.commit()
+
+    return redirect(request.referrer)
+
+@views.route('/modify-tutor/<int:id>', methods=['POST'])
+@login_required
+@admin_required
+def modify_tutor(*, context, id):
+    form = request.form
+
+    if form:
+        user = User.query.filter_by(id=id).first()
+
+        tutor_for = form.getlist('tutor-for')
+
+        if tutor_for:
+            for subject in Subject.query.all():
+                s = Subject.query.filter_by(name=subject.name).first()
+
+                if subject.name in tutor_for:
+                    s.tutors = ','.join(list(set(s.get_tutors() + [user.username])))
+
+                else:
+                    s.tutors = ','.join(list(set(s.get_tutors()) - set([user.username])))
+
+        db.session.commit()
+
+    return redirect(request.referrer)
+
+@views.route('/remove-user/<int:id>')
 @login_required
 @admin_required
 def remove_user(*, context, id):
     user = User.query.filter_by(id=id).first()
+    uname = user.username
+    email = user.email
+
     db.session.delete(user)
 
     db.session.commit()
+
+    log(f"Remove user {uname} ({email}).", "views.remove_user")
 
     return redirect(request.referrer)
 
@@ -184,7 +336,7 @@ def remove_user(*, context, id):
 @admin_required
 def addSubject(*, context):
     if request.form:
-        name = request.form['name']
+        name = request.form['name'].lower()
 
         if not Subject.query.filter_by(name=name).first():
             new_subject = Subject(name=name, tutors='')
@@ -270,8 +422,6 @@ def addRole(*, context, role):
                     if not (user.username in s.get_tutors()):
                         s.tutors = ','.join(s.get_tutors() + [user.username])
 
-            print(f"Gave role {role} to '{user.username}'.")
-
             db.session.commit()
 
         else:
@@ -306,9 +456,13 @@ def removeRole(*, context, role, id):
 @views.route('/home')
 @login_required
 def home(*, context):
+    setup_group = False
+    if not current_user(context).groups:
+        setup_group = True
+
     lessons = Lesson.query.filter(Lesson.id.in_(current_user(context).getSelectedSubjects()))
 
-    return render_template('index.html', current_user=current_user(context), lessons=lessons, subject_db=Subject)
+    return render_template('index.html', current_user=current_user(context), lessons=lessons, subject_db=Subject, user_db=User, setup_group=setup_group)
 
 months = {
     1: 'januar',
@@ -356,6 +510,9 @@ def isInTimeRange(time: str, timeRange: tuple[str, str], format: str = "%H:%M") 
 def tutorstvo(*, context):
     for lesson in Lesson.query.all():
         if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1):
+            for tutor in lesson.get_tutors():
+                User.query.filter_by(username=tutor).score += lesson.filled
+
             db.session.delete(lesson)
 
         db.session.commit()
@@ -456,20 +613,20 @@ def tutorstvo(*, context):
 
         startNext[0] = startNext[0] if datetime.strptime(startNext[0], DATETIME_FORMAT_PY) >= datetime.today() - timedelta(days=1) else ''
 
-    return render_template('tutorstvo.html', current_user=current_user(context), mobile=mobile, search=search, lessons=lessons, subjects=subjects, all_subjects=all_subjects, subject_db=Subject, days=days_, startNext=startNext, rows=rows, enumerate=enumerate, free_classrooms=free_classrooms, len=len, str=str)
+    return render_template('tutorstvo.html', current_user=current_user(context), mobile=mobile, search=search, lessons=lessons, subjects=subjects, all_subjects=all_subjects, subject_db=Subject, user_db=User, days=days_, startNext=startNext, rows=rows, enumerate=enumerate, free_classrooms=free_classrooms, len=len, str=str)
 
 @views.route('/tutorstvo/add/<int:id>')
 @login_required
 def selectLesson(*, context, id):
     lesson = Lesson.query.filter_by(id=id).first()
 
-    if not (current_user(context).username in lesson.get_tutors(Subject)) and not (lesson.filled >= lesson.max):
+    if not (current_user(context).username in lesson.get_tutors(Subject, User)) and not (lesson.filled >= lesson.max):
         current_user(context).selected_subjects = ','.join(set(current_user(context).getSelectedSubjects() + [str(id)]))
 
         lesson.filled += 1
 
         if lesson.filled == lesson.min:
-            addr = list(filter(None, getEmails(lesson.get_tutors(Subject))))
+            addr = list(filter(None, getEmails(lesson.get_tutors(Subject, User))))
 
             if addr:
                 sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,
@@ -494,7 +651,7 @@ def deselectLesson(*, context, id):
         lesson.filled -= 1
 
         if lesson.filled == lesson.min - 1:
-            addr = list(filter(None, getEmails(lesson.get_tutors(Subject))))
+            addr = list(filter(None, getEmails(lesson.get_tutors(Subject, User))))
 
             if addr:
                 sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,
@@ -533,31 +690,74 @@ def learning_resources(*, context):
 
 @views.route('/add-learning-resource', methods=['POST'])
 @login_required
-@admin_required
+@tutor_required
 def add_learning_resource(*, context):
     if request.form:
         subject_name = request.form['subject']
         url = request.form['url']
 
         subject = Subject.query.filter_by(name=subject_name).first()
-        subject.learning_resources = ','.join(set(subject.get_learning_resources() + [url]))  
 
-        db.session.commit()
+        if current_user(context).is_tutor_for(subject):
+            subject.learning_resources = ','.join(set(subject.get_learning_resources() + [url]))  
+
+            db.session.commit()
 
     return redirect(request.referrer)
 
 @views.route('/remove-learning-resource')
 @login_required
-@admin_required
+@tutor_required
 def remove_learning_resource(*, context):
     url = request.args.get('url', None)
     subject_name = request.args.get('subject', None)
 
     if (url and subject_name):
         subject = Subject.query.filter_by(name=subject_name).first()
-        subject.learning_resources = ','.join(set(subject.get_learning_resources()) - set([url]))
 
-        db.session.commit()
+        if current_user(context).is_tutor_for(subject) or current_user(context).is_admin():
+            subject.learning_resources = ','.join(set(subject.get_learning_resources()) - set([url]))
+
+            db.session.commit()
 
     return redirect(request.referrer)
 
+@views.route('/select-group', methods=["POST"])
+@login_required
+def select_group(*, context):
+    form = request.form
+
+    if form:
+        group = form.get('group')
+
+        if group in ['y1', 'y2', 'y3', 'y4']:
+            current_user(context).groups = group
+            db.session.commit()
+
+    return redirect(request.referrer)
+
+@views.route('/leaderboard')
+@login_required
+def leaderboard(*, context):
+    lb = []
+
+    sorted_tutors = []
+    for s in Subject.query.all():
+        for t in s.get_tutors():
+            sorted_tutors.append(t)
+
+    sorted_tutors = list(set(sorted_tutors))
+
+    # sorted_tutors = [User.query.fitler_by(username=t).score for t in sorted_tutors]
+    sorted_tutors = sorted(sorted_tutors, key=lambda t: User.query.filter_by(username=t).first().score)[::-1]
+
+    max_w = 600 - 1
+    max_score = User.query.filter_by(username=sorted_tutors[0]).first().score
+
+    lb = zip(sorted_tutors,
+             [i + 1 for i in range(len(sorted_tutors))],
+             [User.query.filter_by(username=t).first().score / max_score * 100 if max_score > 0 else 100 for t in sorted_tutors],
+             [User.query.filter_by(username=t).first().score for t in sorted_tutors]
+             )
+
+    return render_template('leaderboard.html', current_user=current_user(context), lb=lb, max_w=max_w)

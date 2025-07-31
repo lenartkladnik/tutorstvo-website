@@ -1,0 +1,16 @@
+<div class="popup" id="{{ id }}" style="visibility: {{ 'visible' if show else 'hidden' }}">
+  <form action="{{ action }}" method="{{ method }}">
+      <span>{{ question }}</span>
+      <br />
+      <br />
+
+      <div class="confirm-buttons">
+          <div class="sub" style="min-width: 0;">
+              <input type="submit" value="Da" />
+          </div>
+          <div class="sub" style="min-width: 0;">
+              <a onclick="hideElementById('{{ id }}');" style="cursor: pointer;">Prekliči</a>
+          </div>
+      </div>
+  </form>
+</div>

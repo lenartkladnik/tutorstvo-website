@@ -4,14 +4,31 @@
 <div class="main">
     <div style="width: calc(100vw - 52px - 40px); padding-left: 20px;">
         {% for subject in subjects %}
-        <button class="expand">
+        <button class="expand" id="{{ subject.name.lower() }}-resource-button">
             {{ subject.name.capitalize() }}
             <span class="expand-icon">^</span>
         </button>
         <div class="expandable-content" style="display: none;">
             {% for url in subject.get_learning_resources() %}
-            <previewbox-link href="{{ url }}" style="padding-bottom: 2px; --pb-background-color: rgba(0, 0, 0, 0.1); --pb-text-color: black; --pb-text-color-light: black;"></previewbox-link>
+            {% if current_user.is_tutor_for(subject) or current_user.is_admin() %}
+            <form action="/remove-learning-resource">
+                <input type="hidden" name="url" value="{{ url }}" />
+                <input type="hidden" name="subject" value="{{ subject.name }}" />
+                <input type="image" class="remove-learning-resource" src="{{ url_for('static', filename='close.svg') }}" />
+            </form>
+            {% endif %}
+            <previewbox-link href="{{ url }}" style="padding-bottom: 2px; --pb-background-color: rgba(0, 0, 0, 0.1); --pb-text-color: black; --pb-text-color-light: black;">
+            </previewbox-link>
             {% endfor %}
+            {% if current_user.is_tutor_for(subject) or current_user.is_admin() %}
+            <div class="learning-resource-add-container">
+                <form action="/add-learning-resource" method="POST">
+                    <input type="url" name="url" required placeholder="Link" />
+                    <input type="hidden" name="subject" value="{{ subject.name }}" />
+                    <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
+                </form>
+            </div>
+            {% endif %}
         </div>
         {% endfor %}
     </div>

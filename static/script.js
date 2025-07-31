@@ -1,3 +1,41 @@
+function getState(subKey) {
+    const raw = localStorage.getItem('States');
+    const parsed = raw ? JSON.parse(raw) : {};
+    return parsed[subKey] || null;
+}
+
+function getAllStates() {
+    const raw = localStorage.getItem('States');
+    return raw ? JSON.parse(raw) : {};
+}
+
+function setState(subKey, value) {
+    const raw = localStorage.getItem('States');
+    const parsed = raw ? JSON.parse(raw) : {};
+    parsed[subKey] = value;
+    localStorage.setItem('States', JSON.stringify(parsed));
+}
+
+function removeState(subKey) {
+    const raw = localStorage.getItem('States');
+    if (!raw) return;
+    const parsed = JSON.parse(raw);
+    delete parsed[subKey];
+    localStorage.setItem('States', JSON.stringify(parsed));
+}
+
+function syncOpen() {
+    for (const element in getAllStates()) {
+        let id = getState(element);
+
+        if (id) {
+            try {
+                let el = document.getElementById(id).click();
+            } catch (e) {}
+        }
+    }
+}
+
 const darkModeEnabled = document.body.dataset.darkMode === 'true';
 
 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -6,11 +44,30 @@ const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test
 const all_classrooms = ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj"]
 const always_free = ["knj"]
 
-document.addEventListener('DOMContentLoaded', function() {    
+document.addEventListener('DOMContentLoaded', function() {
     if (darkModeEnabled) {
         toggleDarkMode();
     }
+    syncOpen();
+
+    document.addEventListener('click', function(e) {
+        let sidebar = document.getElementsByClassName('sidebar')[0];
+
+        if (!sidebar.contains(e.target) && sidebar.classList.contains('expanded')) {
+            toggleSidebar();
+        }
+    });
+
 });
+
+function selectGroup(group) {
+    document.getElementById('selectedGroup').value = group;
+
+    document.querySelectorAll('.option-group button').forEach(btn => {
+        btn.classList.remove('selected');
+    });
+    event.target.classList.add('selected');
+}
 
 function getFreeForDate(date, schedule, hour) {
   if (hour == "PRE" || hour == "O") {
@@ -105,12 +162,7 @@ function parseHour(dateStr) {
 }
 
 function toggleDarkMode() {
-    var elements = document.getElementsByTagName("*");
-
-    for (let i = 0; i < elements.length; i++){
-        var element = elements[i]
-        element.classList.toggle("dark-mode");
-    }
+    document.documentElement.classList.toggle('dark-mode');
 
     var toggle = document.getElementById('toggle-dark-mode')
     if (document.body.dataset.darkMode === 'true'){
@@ -161,13 +213,16 @@ function toggleSidebar() {
         sidebar.classList.toggle('collapsed');
         if (sidebar.classList.contains('expanded')){
             document.querySelector('.main-sidebar-icon').textContent = 'arrow_back';
+
+            setState("sidebar", "sidebar-button");
         }
         else{
             document.querySelector('.main-sidebar-icon').textContent = 'menu';
+
+            setState("sidebar", "");
         }
     }
 }
-
 
 function applyDateSelector() {
     const currentYear = new Date().getFullYear(); 
@@ -328,6 +383,8 @@ search.addEventListener("click", function(event) {
     sidebar.style.pointerEvents = "none";
 
     document.getElementsByClassName("close-search-results")[0].style.visibility = "visible";
+
+    setState("tutorstvo_search", "tutorstvo-search-button");
 });
 
 var closeSearch = document.getElementsByClassName("close-search-results")[0];
@@ -350,6 +407,8 @@ closeSearch.addEventListener("click", function(event) {
     sidebar.style.pointerEvents = "auto";
 
     document.getElementsByClassName("close-search-results")[0].style.visibility = "hidden";
+
+    setState("tutorstvo_search", "");
 });
 }
 
@@ -377,10 +436,9 @@ inputs = document.getElementsByClassName("dynamicInput");
 
 for (let i = 0; i < inputs.length; i++){
     input = inputs[i];
-    
+
     registerInput(input);
 }
-
 
 const description = getElementByXpath("//textarea[contains(@class, 'description')]");
 const charCount = document.getElementById("description-char-count");
@@ -410,13 +468,13 @@ if (addSubjectBtn && removeSubjectBtn && subjectsContainer && hold_subjects){
             option.textContent = subject;
             newSelect.appendChild(option);
         });
-    
+
         subjectsContainer.appendChild(newSelect);
     });
-    
+
     removeSubjectBtn.addEventListener('click', function() {
         const selects = subjectsContainer.getElementsByTagName('select');
-        
+
         if (selects.length > 1) {
             subjectsContainer.removeChild(selects[selects.length - 1]);
         }
@@ -480,6 +538,12 @@ for (let i = 0; i < coll.length; i++) {
         icon.textContent = icon.textContent == 'v' ? '^': 'v';
         content.style.display = content.style.display == "none" ? "flex": "none";
 
+        if (this.classList.contains('active')) {
+            setState(coll[i].id.split('-button')[0], coll[i].id);
+        }
+        else {
+            setState(coll[i].id.split('-button')[0], "");
+        }
   });
 }
 
@@ -490,7 +554,7 @@ function updateScale() {
         const scale = vw / 1900;
         week = document.getElementsByClassName("week")[0]
         arrows = document.getElementsByClassName("tutorstvo-arrows")[0]
-        
+
         if (week) {
         week.style.transform = `scale(${scale})`;
         arrows.style.right = "0";
@@ -509,5 +573,45 @@ function linkSelectRedirect(element, argName) {
         const param = `${argName}=${encodeURIComponent(value)}`;
 
         window.location.href = `${currentLocation}?${param}`;
+    }
+}
+
+function hideElement(element) {
+    try {
+        element.style.visibility = 'hidden';
+    } catch (e) {
+        console.warn(`[hideElement] Couldn't hide element '${element}': ${e}`);
+    }
+}
+
+function showElement(element) {
+    try {
+        element.style.visibility = 'visible';
+    } catch (e) {
+        console.warn(`[hideElement] Couldn't show element '${element}': ${e}`);
+    }
+}
+
+function showElementById(id) {
+    const element = document.getElementById(id);
+    showElement(element);
+}
+
+function hideElementById(id) {
+    const element = document.getElementById(id);
+    hideElement(element);
+}
+
+function showElementsByClassName(class_name) {
+    const elements = document.getElementsByClassName(class_name);
+    for (var i = 0; i < elements.length; i++) {
+        showElement(elements[i]);
+    }
+}
+
+function hideElementsByClassName(class_name) {
+    const elements = document.getElementsByClassName(class_name);
+    for (var i = 0; i < elements.length; i++) {
+        hideElement(elements[i]);
     }
 }

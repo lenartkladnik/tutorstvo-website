@@ -1,10 +1,192 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="popup" id="manage-user">
+    {% if manage_user_id %}
+    <script>document.getElementById('manage-user').style.visibility = 'visible';</script>
+    {% set managed_user = User.query.filter_by(id=int(manage_user_id)).first() %}
+    <div style="width: 100%; text-align: center;">
+    <h2 style="font-weight: bold">{{ formatTitle(managed_user.username) }}</h2>
+    </div>
+    <br />
+
+    <form action="/modify-user/{{ manage_user_id }}" method="POST">
+        <span>Letnik:</span>
+        <div class="year-selection">
+            <div class="selection-input">
+                <input type="radio" id="y1" name="year" value="y1" {{ 'checked' if managed_user.get_year() == 'y1' else '' }}>
+                <label for="y1">1. Letnik</label>
+            </div>
+            <br />
+            <div class="selection-input">
+                <input type="radio" id="y2" name="year" value="y2" {{ 'checked' if managed_user.get_year() == 'y2' else '' }}>
+                <label for="y2">2. Letnik</label>
+            </div>
+            <br />
+            <div class="selection-input"> 
+                <input type="radio" id="y3" name="year" value="y3" {{ 'checked' if managed_user.get_year() == 'y3' else '' }}>
+                <label for="y3">3. Letnik</label>
+            </div>
+            <br />
+            <div class="selection-input">
+                <input type="radio" id="y4" name="year" value="y4" {{ 'checked' if managed_user.get_year() == 'y4' else '' }}>
+                <label for="y4">4. Letnik</label>
+            </div>
+        </div>
+
+        <br />
+
+        <span>Tutor za:</span>
+        <div class="tutor-for">
+            {% for subject in subjects %}
+            <div class="selection-input">
+                <input type="checkbox" id="{{ subject.name }}-opt" value="{{ subject.name }}" name="tutor-for" {{ 'checked' if managed_user.is_tutor_for(subject) else '' }}>
+                <label for="{{ subject.name }}-opt">{{ formatTitle(subject.name) }}</label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <br />
+
+        <span>Posebne funkcije:</span>
+        <br />
+        <div class="selection-input special-functions-div">
+            <input type="checkbox" id="is-admin" name="is-admin" {{ 'checked' if managed_user.is_admin() else '' }}>
+            <label for="is-admin">Administrator</label>
+        </div>
+
+        <br />
+        <br />
+
+        <div class="confirm-buttons">
+            <div class="sub" style="min-width: 0;">
+                <input type="submit" value="Shrani" />
+            </div>
+            <div class="sub" style="min-width: 0;">
+                <a onclick="hideElementById('manage-user');" style="cursor: pointer;">Prekliči</a>
+            </div>
+        </div>
+    </form>
+    {% endif %}
+</div>
+
+<div class="popup" id="filter-users">
+    <div style="width: 100%; text-align: center;">
+    <h2 style="font-weight: bold">Filter</h2>
+    </div>
+    <br />
+
+    <form method="POST" id="filter-form">
+        <input type="checkbox" id="year-checkbox" name="filter-include-year">
+        <label for="year-checkbox">Letnik:</label>
+        <div class="year-selection">
+            <div class="selection-input">
+                <input type="checkbox" id="y1" name="filter-year" value="y1">
+                <label for="y1">1. Letnik</label>
+            </div>
+            <br />
+            <div class="selection-input">
+                <input type="checkbox" id="y2" name="filter-year" value="y2">
+                <label for="y2">2. Letnik</label>
+            </div>
+            <br />
+            <div class="selection-input"> 
+                <input type="checkbox" id="y3" name="filter-year" value="y3">
+                <label for="y3">3. Letnik</label>
+            </div>
+            <br />
+            <div class="selection-input">
+                <input type="checkbox" id="y4" name="filter-year" value="y4">
+                <label for="y4">4. Letnik</label>
+            </div>
+        </div>
+
+        <br />
+
+        <input type="checkbox" id="tutor-checkbox" name="filter-include-tutor">
+        <label for="tutor-checkbox">Tutor za:</label>
+        <div class="tutor-for">
+            {% for subject in subjects %}
+            <div class="selection-input">
+                <input type="checkbox" id="{{ subject.name }}-opt" value="{{ subject.name }}" name="filter-tutor-for">
+                <label for="{{ subject.name }}-opt">{{ formatTitle(subject.name) }}</label>
+            </div>
+            {% endfor %}
+        </div>
+
+        <br />
+
+        <input type="checkbox" id="other-checkbox" name="filter-include-other">
+        <label for="other-checkbox">Posebne funkcije:</label>
+        <br />
+        <div class="selection-input special-functions-div">
+            <input type="checkbox" id="is-admin" name="filter-is-admin">
+            <label for="is-admin">Administrator</label>
+        </div>
+
+        <br />
+        <br />
+
+        <div class="center-confirm-buttons">
+            <div class="sub" style="min-width: 0;">
+                <input type="submit" value="Potrdi" />
+            </div>
+            <div class="sub" style="min-width: 0;">
+                <a style="cursor: pointer" onclick="
+                    const form = document.getElementById('filter-form');
+                    for (const el of form.elements) {
+                        if (el.tagName === 'INPUT' && el.type !== 'submit') el.value = '';
+                    }
+                    form.submit();
+                ">Počisti</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if remove_user_id %}
+{% set id = 'remove-user-form' %}
+{% set action = '/remove-user/' + remove_user_id %}
+{% set method = 'GET' %}
+{% set question = "Ali ste prepričani da želite odstraniti uporabnika " + formatTitle(User.query.filter_by(id=remove_user_id).first().username) + "?"%}
+{% set show = True %}
+{% include 'confirm_snippet.html' %}
+{% endif %}
+
+{% if tutor_manage_id %}
+<div class="popup" id="manage-tutor" style="visibility: visible;">
+    {% set tutor_manage_user = User.query.filter_by(id=tutor_manage_id).first() %}
+    <div style="width: 100%; text-align: center;">
+    <h2 style="font-weight: bold">{{ formatTitle(tutor_manage_user.username) }}</h2>
+    </div>
+
+    <form action="/modify-tutor/{{ tutor_manage_user.id }}" method="POST">
+    <span>Tutor za:</span>
+    <div class="tutor-for">
+        {% for subject in subjects %}
+        <div class="selection-input">
+            <input type="checkbox" id="{{ subject.name }}-opt" value="{{ subject.name }}" name="tutor-for" {{ 'checked' if tutor_manage_user.is_tutor_for(subject) else '' }}>
+            <label for="{{ subject.name }}-opt">{{ formatTitle(subject.name) }}</label>
+        </div>
+        {% endfor %}
+    </div>
+    <br />
+    <div class="confirm-buttons">
+        <div class="sub" style="min-width: 0;">
+            <input type="submit" value="Shrani" />
+        </div>
+        <div class="sub" style="min-width: 0;">
+            <a onclick="hideElementById('manage-tutor');" style="cursor: pointer;">Prekliči</a>
+        </div>
+    </div>
+    </form>
+</div>
+{% endif %}
+
 <div class="main">
     <div class="main-panel">
         <div class="sub-panel admin-panel">
-            <h1>Admins</h1>
+            <h1>Administratorji</h1>
             <div class="sub-container">
                 {% for admin in admins %}
                     <div class="sub">
@@ -16,7 +198,7 @@
                 {% endfor %}
                 <div class="sub">
                     <form action="/add-role/admin" method="POST">
-                        <input name="username" type="text" list="users-list" class="dynamicInput" required placeholder="Username" autocomplete="off" />
+                        <input name="username" type="text" list="users-list" class="dynamicInput" required placeholder="Ime" autocomplete="off" />
                         <input type="image" src="{{ url_for('static', filename='person_add.svg') }}" />
                     </form>
                 </div>
@@ -24,14 +206,15 @@
         </div>
 
         <div class="sub-panel">
-            <h1>Tutors</h1>
+            <h1>Tutorji</h1>
             <div class="sub-container">
                 {% for subjects, tutor in tutors %}
-                    <div class="sub" style="min-width: fit-content;">
-                        <span>{{ formatTitle(tutor.username) }}</span>
-                        {% for subject in subjects %}
-                            <span class="element">{{ subject }}</span>
-                        {% endfor %}
+                    <form id="tutor-manage-form" method="POST">
+                        <input type="hidden" name="tutor_manage_id" value="{{ tutor.id }}">
+                    </form>
+                    <div class="sub" style="min-width: fit-content; cursor: pointer;" onclick="document.getElementById('tutor-manage-form').submit()">
+                        <span style="pointer-events: none;">{{ formatTitle(tutor.username) }}</span>
+                        <span class="element" style="padding-left: 5px; padding-right: 5px; pointer-events: none;">{{ len(subjects) }}</span>
                         <a href="/remove-role/tutor/{{ tutor.id }}">
                             <img src="{{ url_for('static', filename='close.svg') }}">
                         </a>
@@ -39,14 +222,14 @@
                 {% endfor %}
                 <div class="sub" style="min-width: fit-content;">
                     <form action="/add-role/tutor" method="POST">
-                        <input name="username" type="text" list="users-list" class="tutor-input" required placeholder="Username" autocomplete="off" />
+                        <input name="username" type="text" list="users-list" class="tutor-input" required placeholder="Ime" autocomplete="off" />
                         <a href="#" id="removeSubjectBtn">
                             <span class="text" style="font-size: 24px;">-</span>
                         </a>
                         <div id="subjects-container">
                             <select class="element" name="subjects[]" style="width: 15ch;" required>
                                 {% for subject in subjects %}
-                                <option value="{{ subject.name }}">{{ subject.name }}</option>
+                                <option value="{{ subject.name }}">{{ subject.name.capitalize() }}</option>
                                 {% endfor %}
                             </select>
                         </div>
@@ -60,7 +243,7 @@
         </div>
 
         <div class="sub-panel">
-            <h1>Subjects</h1>
+            <h1>Predmeti</h1>
             <div class="sub-container">
                 {% for subject in subjects %}
                     <div class="sub">
@@ -72,14 +255,14 @@
                 {% endfor %}
                 <div class="sub">
                     <form action="/add-subject" method="POST">
-                        <input name="name" type="text" class="dynamicInput input" maxlength="11" required placeholder="Subject name" autocomplete="off" />
+                        <input name="name" type="text" class="dynamicInput input" maxlength="11" required placeholder="Predmet" autocomplete="off" />
                         <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
                     </form>
                 </div>
             </div>
         </div>
         
-        <div class="sub-panel">
+        <!-- <div class="sub-panel">
           <h1>Groups</h1>
               <div class="sub-container">
                 {% for id, group in zip(group_ids, groups) %}
@@ -97,7 +280,7 @@
                     </form>
                 </div>
             </div>
-        </div>
+        </div> --!>
         
         <!-- <div class="sub-panel">
             <h1>Stari Testi</h1>
@@ -123,77 +306,36 @@
         </div> --!>
 
         <div class="sub-panel">
-            <h1>Users<h1>
+            <h1>Uporabniki</h1>
 
-            <div class="usersContainer">
-                {% for user in users %}
+            <div style="position: relative;">
+                <a onclick="showElementById('filter-users');">
+                    <img class="users-filter-img" src="{{ url_for('static', filename='filter.svg') }}">
+                </a>
+                <input type="text" id='users-search' placeholder="Uporabniško ime" maxlength="76" />
+            </div>
+
+            {% set user_map = {} %}
+            {% for user in users_filtered %}
+                {% set _ = user_map.update({user.id: formatTitle(user.username)}) %}
+            {% endfor %}
+            <input type="hidden" id='all-users' value='{{ user_map | tojson }}'>
+
+            <div class="usersContainer sub-container" id="users-container">
+                <!-- {% for user in users_filtered %}
                 <div class="sub">
-                    <form action="/add-to-group" id="users-form-{{ user.id }}" method="POST">
-                        <span style="all: unset; font-size: 16px;">{{ formatTitle(user.username) }}</span>
-                        <input type="hidden" name="username" value="{{ user.username }}" />
-
-                        <div class="center-vertical">
-                            <a onclick="removeGroupBtn({{ user.id }});">
-                               <span class="text" style="font-size: 24px; cursor: pointer;">-</span>
-                            </a>
-                            <div id="groups-container-{{ user.id }}">
-                                {% for group in user.get_groups() %}
-                                <select class="element users-select" name="groups[]" style="width: 15ch; text-transform: none;" required>
-                                    {% for sub_group in list(set(groups) - set(group)) %}
-                                        <option value="{{ sub_group }}" {{ 'selected' if sub_group == group else '' }}>{{ sub_group }}</option>
-                                    {% endfor %}
-                                </select>
-                                {% endfor %}
-
-                            </div>
-                            <a onclick="addGroupBtn({{ user.id }});">
-                                <span class="text" style="font-size: 22px; cursor: pointer;">+</span>
-                           </a>
-                        </div>
-
-                        <input type="image" src="{{ url_for('static', filename='sync.svg') }}" />
-
-                        <input type="hidden" id="hold_groups-{{ user.id }}" value="{{ groups }}">
+                    <form method="POST">
+                        <button name="manage_user_id" value="{{ user.id }}" style="all: unset; font-size: 16px; cursor: pointer;">{{ formatTitle(user.username) }}</button>
                     </form>
 
-                    <form action="/remove-user/{{ user.id }}" method="GET" style="width: fit-content;">
+                    <form method="POST" style="width: fit-content;">
+                        <input type="hidden" name="remove_user_id" value="{{ user.id }}" />
                         <input type="image" name="remove" value="" src="{{ url_for('static', filename='close.svg') }}" />
                     </form>
                 </div>
-                {% endfor %}
+                {% endfor %} --!>
             </div>
         </div>
-
-        <div class="sub-panel">
-            <h1>Learning Resources</h1>
-            <div class="sub-container">
-                {% for subject in subjects %}
-                {% for url in subject.get_learning_resources() %}
-                    <div class="sub url-container">
-                        <span class="url">{{ url }}</span>
-                        <span class="element">{{ subject.name }}</span>
-                        <a href="/remove-learning-resource?url={{ url }}&subject={{ subject.name }}">
-                            <img src="{{ url_for('static', filename='close.svg') }}">
-                        </a>
-                    </div>
-                {% endfor %}
-                {% endfor %}
-                <div class="sub" style="min-width: fit-content;">
-                    <form action="/add-learning-resource" method="POST">
-                        <input name="url" type="url" class="tutor-input" required placeholder="Link" autocomplete="off" />
-                        <div id="subjects-container">
-                            <select class="element" name="subject" style="width: 15ch;" required>
-                                {% for subject in subjects %}
-                                <option value="{{ subject.name }}">{{ subject.name }}</option>
-                                {% endfor %}
-                            </select>
-                        </div>
-                        <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
-                    </form>
-                </div>
-            </div>
-        </div>
-
     </div>
 
     <div style="margin: 20px 20px;">
@@ -239,5 +381,73 @@
             }
         });
     }
+
+    function updateSearch() {
+        const container = document.getElementById('users-container');
+        container.innerHTML = '';
+        const search = document.getElementById('users-search').value;
+        const all = JSON.parse(document.getElementById('all-users').value);
+
+        let match = {};
+
+        if (search) {
+            for (let i in all) {
+                if (all[i].toLowerCase().startsWith(search.toLowerCase())) {
+                    match[i] = all[i];
+                }
+            }
+        } else {
+            match = all;
+        }
+
+        for (let i in match) {
+            createUserField(i, match[i]);
+        }
+    }
+
+    function createUserField(id, username) {
+        const subDiv = document.createElement("div");
+        subDiv.className = "sub";
+
+        const manageForm = document.createElement("form");
+        manageForm.method = "POST";
+
+        const manageButton = document.createElement("button");
+        manageButton.name = "manage_user_id";
+        manageButton.value = `${id}`;
+        manageButton.style.cssText = "all: unset; font-size: 16px; cursor: pointer;";
+        manageButton.textContent = username;
+
+        manageForm.appendChild(manageButton);
+
+        const removeForm = document.createElement("form");
+        removeForm.method = "POST";
+        removeForm.style.width = "fit-content";
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = "remove_user_id";
+        hiddenInput.value = `${id}`;
+
+        const imageInput = document.createElement("input");
+        imageInput.type = "image";
+        imageInput.name = "remove";
+        imageInput.value = "";
+
+        imageInput.src = "static/close.svg";
+
+        removeForm.appendChild(hiddenInput);
+        removeForm.appendChild(imageInput);
+
+        subDiv.appendChild(manageForm);
+        subDiv.appendChild(removeForm);
+
+        document.getElementById('users-container').appendChild(subDiv);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        updateSearch();
+        document.getElementById('users-search').addEventListener("input", updateSearch);
+    });
 </script>
 {% endblock %}

@@ -7,7 +7,7 @@
         {% if lessons.count() > 0 %}
         <h1 class="sub-title">Izbrane ure</h1>
         {% else %}
-        <h1 class="sub-title">Nimate izbranih ur</h1>
+        <h1 class="sub-title">Ni izbranih ur</h1>
         {% endif %}
         <div class="sub-container subject">
             {% for lesson in lessons %}
@@ -19,5 +19,5 @@
         </div>
     </div>
 </div>
-<img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo">
+<!-- <img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo"> --!>
 {% endblock %}

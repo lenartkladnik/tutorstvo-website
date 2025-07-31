@@ -12,13 +12,17 @@
 {% endif %}
     <br />
     <div class="tutorstvo-search">
-        <a href="#" style="cursor: pointer;">
+        <a href="#" style="cursor: pointer;" id="tutorstvo-search-button">
             <img src="{{ url_for('static', filename='search.svg') }}" class="icon">
         </a>
     </div>
 
     <div class="right tutorstvo-arrows">
         {% if startNext[0] %}
+        <a onclick="window.location.href='tutorstvo'" style="cursor: pointer;">
+            <span class="icon text-button">&laquo</span>
+        </a>
+
         <a onclick="window.location.href='tutorstvo?date={{ startNext[0] }}'" style="cursor: pointer;">
             <img src="{{ url_for('static', filename='arrow_backward.svg') }}" class="icon">
         </a>
@@ -28,9 +32,6 @@
             <img src="{{ url_for('static', filename='arrow_forward.svg') }}" class="icon">
         </a>
 
-        <a onclick="window.location.href='tutorstvo'" style="cursor: pointer;">
-            <img src="{{ url_for('static', filename='calendar.svg') }}" class="icon">
-        </a>
     </div>
 
     <table class="week">
@@ -145,13 +146,7 @@
                 <input class="subject-form-button" type="submit" value="ADD" />
             </div>
 
-            <div class="group-select">
-                <select class="element" name="group" style="width: 15ch; text-transform: none;" required>
-                  {% for group in current_user.get_groups() %}
-                      <option value="{{ group }}">{{ group }}</option>
-                  {% endfor %}
-              </select>
-            </div>
+            <input type="hidden" name="group" value="{{ current_user.get_year() }}" />
 
         </div>
     </div>

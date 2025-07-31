@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="sl">
 
 <head>
     <meta charset="UTF-8">
@@ -14,19 +14,35 @@
 </head>
 
 <body data-dark-mode="{{ 'true' if current_user.dark_mode else 'false' }}">
+    {% if setup_group %}
+        <div class="option-group center">
+            <form action="/select-group" method="post">
+                <h1 class="text" style="display: block; text-align: center; width: 100%; font-size: 25px;">Izberi svoj letnik</h1>
+                <div style="height: 15px;"></div>
+                <button type="button" class="option-button selected" onclick="selectGroup('y1')">1. Letnik</button>
+                <button type="button" class="option-button" onclick="selectGroup('y2')">2. Letnik</button>
+                <button type="button" class="option-button" onclick="selectGroup('y3')">3. Letnik</button>
+
+                <input type="hidden" value="y1" name="group" id="selectedGroup" required>
+                <div style="height: 15px;"></div>
+                <button type="submit" class="option-button">Izberi</button>
+            </form>
+        </div>
+        <div style="filter: blur(1.2px); position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none;">
+    {% endif %}
     <main>
         <div class="topbar">
             <a href="home" class="logo">
-                <img src="{{ url_for('static', filename='tutorstvo.svg') }}" class="logo">
+                <img src="{{ url_for('static', filename='tutorstvo.svg') }}" class="logo noInvert">
             </a>
             
             <div class="topbar-right">
                 <a href="toggle-dark-mode" class="button">
-                    <img src="{{ url_for('static', filename='dark_mode.svg') }}" id="toggle-dark-mode" class="icon">
+                    <img src="{{ url_for('static', filename='dark_mode.svg') }}" id="toggle-dark-mode" class="icon noInvert">
                 </a>
 
                 <a href="logout" class="button">
-                    <img src="{{ url_for('static', filename='logout.svg') }}" class="icon">
+                    <img src="{{ url_for('static', filename='logout.svg') }}" class="icon noInvert">
                 </a>
             </div>
         </div>
@@ -34,41 +50,35 @@
         {% block content %}{% endblock %}
 
         <aside class="sidebar">
-            <button class="sidebar-toggle" onclick="toggleSidebar()">
+            <button class="sidebar-toggle" id="sidebar-button" onclick="toggleSidebar()">
                 <i class="material-icons main-sidebar-icon">menu</i>
             </button>
             <ul>
-                <li>
-                    <a href="home" class="sidebar-link">
-                        <img src="{{ url_for('static', filename='home.svg') }}" class="sidebar-icon">
-                        <span class="sidebar-text">Domov</span>
-                    </a>
-                </li>
-                <li>
-                    <a href="tutorstvo" class="sidebar-link">
-                        <img src="{{ url_for('static', filename='tutorstvo.svg') }}" class="sidebar-icon">
-                        <span class="sidebar-text">Tutorstvo</span>
-                    </a>
-                </li>
-                <!-- <li>
-                    <a href="tests" class="sidebar-link">
-                        <img src="{{ url_for('static', filename='testi.svg') }}" class="sidebar-icon">
-                        <span class="sidebar-text">Stari testi</span>
-                    </a>
-                </li> --!>
-                <li>
-                    <a href="learning-resources" class="sidebar-link">
-                        <img src="{{ url_for('static', filename='learning_resources.svg') }}" class="sidebar-icon">
-                        <span class="sidebar-text">Učna sredstva</span>
-                    </a>
-                </li>
+                {% set href = 'home' %}
+                {% set img = 'home.svg' %}
+                {% set text = 'Domov' %}
+                {% include 'sidebar_snippet.html' %}
+
+                {% set href = 'tutorstvo' %}
+                {% set img = 'tutorstvo.svg' %}
+                {% set text = 'Tutorstvo' %}
+                {% include 'sidebar_snippet.html' %}
+
+                {% set href = 'leaderboard' %}
+                {% set img = 'leaderboard.svg' %}
+                {% set text = 'Lestvica' %}
+                {%  include 'sidebar_snippet.html' %}
+
+                {% set href = 'learning-resources' %}
+                {% set img = 'learning_resources.svg' %}
+                {% set text = 'Učna sredstva' %}
+                {% include 'sidebar_snippet.html' %}
+
                 {% if current_user.is_admin() %}
-                <li>
-                    <a href="admin-panel" class="sidebar-link">
-                        <img src="{{ url_for('static', filename='admin-panel.svg') }}" class="sidebar-icon">
-                        <span class="sidebar-text">Manage</span>
-                    </a>
-                </li>
+                {% set href = 'admin-panel' %}
+                {% set img = 'admin-panel.svg' %}
+                {% set text = 'Upravljaj' %}
+                {% include 'sidebar_snippet.html' %}
                 {% endif %}
             </ul>
         </aside>
