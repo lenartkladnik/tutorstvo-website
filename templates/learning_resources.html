@@ -22,7 +22,7 @@
             {% endfor %}
             {% if current_user.is_tutor_for(subject) or current_user.is_admin() %}
             <div class="learning-resource-add-container">
-                <form action="/add-learning-resource" method="POST">
+                <form action="/add-learning-resource" method="POST" class="learning-resource-add-form">
                     <input type="url" name="url" required placeholder="Link" />
                     <input type="hidden" name="subject" value="{{ subject.name }}" />
                     <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />

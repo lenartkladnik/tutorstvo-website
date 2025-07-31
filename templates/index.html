@@ -3,7 +3,7 @@
 {% block content %}
 <h1 class="welcome">Dobrodošli, {{ current_user.username.split(' ')[0].capitalize() }}</h1>
 <div class="home">
-    <div class="sub-panel">
+    <div class="sub-panel" id="selected">
         {% if lessons.count() > 0 %}
         <h1 class="sub-title">Izbrane ure</h1>
         {% else %}
@@ -17,6 +17,18 @@
             </div>
             {% endfor %}
         </div>
+    </div>
+    <div class="sub-panel" id="tutor-board">
+        {% if current_user.is_tutor(subject_db) %}
+        {% set i = current_user.getLeaderBoardPos(subject_db) %}
+        <span>Si </span>
+        <span class="place{{ '-first' if i == 1 else '-second' if i == 2 else '-third' if i == 3 else '' }}">#{{ i }}</span>
+        <span> najboljši tutor!</span>
+        <span class="celebrating">🥳</span>
+        <span class="ty">Hvala ti, še tako naprej!</span>
+        {% else %}
+        <p>Vidimo da še nisi tutor, če meniš da bi bil/a prvi/a za to prosim ...(NAVODILA + SLIKE eg. pošlji email, ...)..., hvala!</p>
+        {% endif %}
     </div>
 </div>
 <!-- <img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo"> --!>

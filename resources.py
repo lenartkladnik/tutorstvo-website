@@ -19,7 +19,7 @@ try:
         f.seek(0)
         for i in f.readlines():
             ln = i.strip().split(':', 1)
-            
+
             if len(ln) > 1:
                 secrets.update({ln[0]: ln[1]})
 
@@ -55,7 +55,7 @@ def confirm_token(token):
                 salt=f"confirm-email",
                 max_age=3600
             )
-        
+
         return email
     except itsdangerous.SignatureExpired:
         return False 
@@ -91,3 +91,22 @@ def debug_only(func):
         return abort(404)
 
     return wrapper
+
+def get_leaderboard(User, Subject):
+    sorted_tutors = []
+    for s in Subject.query.all():
+        for t in s.get_tutors():
+            sorted_tutors.append(t)
+
+    sorted_tutors = list(set(sorted_tutors))
+
+    sorted_tutors = sorted(sorted_tutors, key=lambda t: User.query.filter_by(username=t).first().score)[::-1]
+
+    max_score = User.query.filter_by(username=sorted_tutors[0]).first().score
+    lb = zip(sorted_tutors,
+             [i + 1 for i in range(len(sorted_tutors))],
+             [User.query.filter_by(username=t).first().score / max_score * 100 if max_score > 0 else 100 for t in sorted_tutors],
+             [User.query.filter_by(username=t).first().score for t in sorted_tutors]
+             )
+
+    return lb

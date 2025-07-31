@@ -5,7 +5,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, secrets, log, debug_only, DEBUG
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG
 from datetime import datetime, timedelta
 import csv
 
@@ -739,25 +739,7 @@ def select_group(*, context):
 @views.route('/leaderboard')
 @login_required
 def leaderboard(*, context):
-    lb = []
-
-    sorted_tutors = []
-    for s in Subject.query.all():
-        for t in s.get_tutors():
-            sorted_tutors.append(t)
-
-    sorted_tutors = list(set(sorted_tutors))
-
-    # sorted_tutors = [User.query.fitler_by(username=t).score for t in sorted_tutors]
-    sorted_tutors = sorted(sorted_tutors, key=lambda t: User.query.filter_by(username=t).first().score)[::-1]
-
+    lb = get_leaderboard(User, Subject)
     max_w = 600 - 1
-    max_score = User.query.filter_by(username=sorted_tutors[0]).first().score
-
-    lb = zip(sorted_tutors,
-             [i + 1 for i in range(len(sorted_tutors))],
-             [User.query.filter_by(username=t).first().score / max_score * 100 if max_score > 0 else 100 for t in sorted_tutors],
-             [User.query.filter_by(username=t).first().score for t in sorted_tutors]
-             )
 
     return render_template('leaderboard.html', current_user=current_user(context), lb=lb, max_w=max_w)

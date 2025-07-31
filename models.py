@@ -1,5 +1,5 @@
 from extensions import db
-from resources import formatTitle
+from resources import formatTitle, get_leaderboard
 
 class Subject(db.Model):
     __bind_key__ = 'subjects'
@@ -19,7 +19,7 @@ class User(db.Model):
     __bind_key__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
-    groups = db.Column(db.String(200), default='', nullable=True) 
+    groups = db.Column(db.String(200), default='', nullable=True)
     username = db.Column(db.String(100), unique=True, nullable=False)
     role = db.Column(db.String(50), default='user')
     selected_subjects = db.Column(db.String(200), default='', nullable=False)
@@ -76,6 +76,15 @@ class User(db.Model):
 
     def getSelectedSubjects(self):
         return list((filter(None, self.selected_subjects.split(','))))
+
+    def getLeaderBoardPos(self, subject_db):
+        if not self.is_tutor(subject_db):
+            return None
+
+        lb = get_leaderboard(self, Subject)
+        for i in lb:
+            if i[0] == self.username:
+                return i[1]
 
 class Lesson(db.Model):
     __bind_key__ = 'lessons'
