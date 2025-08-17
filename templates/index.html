@@ -23,9 +23,15 @@
         {% set i = current_user.getLeaderBoardPos(subject_db) %}
         <span>Si </span>
         <span class="place{{ '-first' if i == 1 else '-second' if i == 2 else '-third' if i == 3 else '' }}">#{{ i }}</span>
+        {% if i <= 5 %}
         <span> najboljši tutor!</span>
         <span class="celebrating">🥳</span>
         <span class="ty">Hvala ti, še tako naprej!</span>
+        {% else %}
+        <span> med tutorji.</span>
+        <span class="celebrating">😄</span>
+        <span class="ty">Na dobri poti si, hvala ti!</span>
+        {% endif %}
         {% else %}
         <p>Vidimo da še nisi tutor, če meniš da bi bil/a prvi/a za to prosim ...(NAVODILA + SLIKE eg. pošlji email, ...)..., hvala!</p>
         {% endif %}
