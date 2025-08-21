@@ -30,5 +30,7 @@
 **/obj
 **/secrets.dev.yaml
 **/values.dev.yaml
+**/logs
+**/flask_session
 LICENSE
 README.md
