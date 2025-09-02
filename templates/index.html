@@ -18,6 +18,19 @@
             {% endfor %}
         </div>
     </div>
+
+    {% if not current_user.is_tutor(subject_db) %}
+    <div class="popup" id="become-a-tutor">
+        <span>Predmet:</span>
+        <br />
+        <select class="title" name="title" required>
+              {% for subject in subjects %}
+              <option value="{{ subject.name }}">{{ subject.name }}</option>
+              {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+
     <div class="sub-panel" id="tutor-board">
         {% if current_user.is_tutor(subject_db) %}
         {% set i = current_user.getLeaderBoardPos(subject_db) %}
@@ -33,9 +46,11 @@
         <span class="ty">Na dobri poti si, hvala ti!</span>
         {% endif %}
         {% else %}
-        <p>Vidimo da še nisi tutor, če meniš da bi bil/a prvi/a za to prosim ...(NAVODILA + SLIKE eg. pošlji email, ...)..., hvala!</p>
+        <p>{{ become_a_tutor_message[0] }}</p>
+        <p>{{ become_a_tutor_message[1] }}</p>
+        <button type="button" class="text-button" onclick="showElementById('become-a-tutor');applyBlurToBody();">Postani tutor</button>
         {% endif %}
     </div>
 </div>
-<!-- <img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo"> --!>
+<!-- <img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo"> -->
 {% endblock %}

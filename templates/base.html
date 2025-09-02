@@ -14,7 +14,9 @@
 </head>
 
 <body data-dark-mode="{{ 'true' if current_user.dark_mode else 'false' }}">
-    {% if setup_group %}
+    <!-- Included here because of the applyBlurToBody call that may happen and is defined in script.js -->
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% if not current_user.groups %}
         <div class="option-group center">
             <form action="/select-group" method="post">
                 <h1 class="text" style="display: block; text-align: center; width: 100%; font-size: 25px;">Izberi svoj letnik</h1>
@@ -22,13 +24,14 @@
                 <button type="button" class="option-button selected" onclick="selectGroup('y1')">1. Letnik</button>
                 <button type="button" class="option-button" onclick="selectGroup('y2')">2. Letnik</button>
                 <button type="button" class="option-button" onclick="selectGroup('y3')">3. Letnik</button>
+                <button type="button" class="option-button" onclick="selectGroup('y4')">4. Letnik</button>
 
                 <input type="hidden" value="y1" name="group" id="selectedGroup" required>
                 <div style="height: 15px;"></div>
-                <button type="submit" class="option-button">Izberi</button>
+                <button type="submit" class="option-button">Potrdi</button>
             </form>
         </div>
-        <div style="filter: blur(1.2px); position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none;">
+        <script>applyBlurToBody();</script>
     {% endif %}
     <main>
         <div class="topbar">
@@ -83,7 +86,7 @@
             </ul>
         </aside>
     </main>
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <!-- script.js is included at the top of body, since there is a possible call to a function in it at the top -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     {% block script %}{% endblock %}
 </body>

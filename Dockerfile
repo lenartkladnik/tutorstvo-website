@@ -47,11 +47,11 @@ RUN chown -R appuser:appuser logs
 RUN mkdir flask_session
 RUN chown -R appuser:appuser flask_session
 
+RUN mkdir -p instance
+RUN chown -R appuser:appuser instance
+
 # Switch to the non-privileged user to run the application.
 USER appuser
-
-# Copy the source code into the container.
-COPY . .
 
 # Expose the port that the application listens on.
 EXPOSE 5000

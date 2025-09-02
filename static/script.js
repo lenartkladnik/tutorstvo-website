@@ -415,19 +415,19 @@ closeSearch.addEventListener("click", function(event) {
 function registerInput(input){
     input.addEventListener('input', function () {
         const tempSpan = document.createElement('span');
-        
+
         tempSpan.style.fontFamily = getComputedStyle(input).fontFamily;
         tempSpan.style.fontSize = getComputedStyle(input).fontSize;
         tempSpan.style.fontWeight = getComputedStyle(input).fontWeight;
         tempSpan.style.whiteSpace = 'nowrap';
         tempSpan.style.visibility = 'hidden';
-        
+
         tempSpan.textContent = input.value || ' ';
-    
+
         document.body.appendChild(tempSpan);
-        
+
         input.style.width = `${tempSpan.offsetWidth || 5}px`;
-        
+
         document.body.removeChild(tempSpan);
     });
 }
@@ -614,4 +614,14 @@ function hideElementsByClassName(class_name) {
     for (var i = 0; i < elements.length; i++) {
         hideElement(elements[i]);
     }
+}
+
+function applyBlurToBody() {
+    document.body.classList.add('blur');
+    document.body.classList.add('blur-move-fix');
+}
+
+function removeBlurFromBody() {
+    document.body.classList.remove('blur');
+    document.body.classList.remove('blur-move-fix');
 }

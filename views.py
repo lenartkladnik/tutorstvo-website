@@ -8,6 +8,7 @@ from models import User, Subject, Lesson, Group
 from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG
 from datetime import datetime, timedelta
 import csv
+import random
 
 views = Blueprint('views', __name__)
 
@@ -29,12 +30,23 @@ def current_user(ctx) -> User:
     return user
 
 FREE_CLASSROOMS_CSV = 'ucilnice.csv'
-TESTS_DIR = 'static/tests' # Stari testi
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'} # Allowed extension for image upload
+# TESTS_DIR = 'static/tests' # Stari testi
+# ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'} # Allowed extension for image upload
+BECOME_A_TUTOR_MESSAGES = [
+    "Postani del spremembe na Gimnaziji Šentvid! - Pridruži se tutorskemu programu in pomagaj sošolcem.",
+    "Tvoja pomoč šteje! - Postani tutor in pomagaj drugim.",
+    "Deli svoje znanje, pridobi dragocene izkušnje! - Tutorski program te čaka.",
+    "Se spomniš, kako si se počutil prvi dan na gimnaziji? - Pomagaj novim učencem, da se lažje znajdejo. Postani njihov tutor!",
+    "Imaš znanje, ki ga drugi potrebujejo? - Ne obdrži ga zase – deli ga kot tutor na Gimnaziji Šentvid.",
+    "Gradimo močnejšo šolsko skupnost skupaj! - Vsak tutor prispeva k boljšemu vzdušju na naši šoli.",
+    "Tutorstvo = korak k tvoji prihodnosti - Razvij vodstvene veščine, pridobi izkušnje in pomagaj sošolcem.",
+    "Mali koraki, velike spremembe - Že z eno uro na teden lahko pomagaš nekomu do boljših ocen"
+]
+ALLOWED_GROUPS = ['y1', 'y2', 'y3', 'y4']
 
 def sendEmail(subject: str = '', recipients: list[str] | None = None, content: str = '', heading: str = ''):
     """
-    Send email from the 'tutorstvo@kladnik.cc' email address
+    Send email from the email address specified in secrets
     """
 
     if recipients:
@@ -45,7 +57,7 @@ def sendEmail(subject: str = '', recipients: list[str] | None = None, content: s
 
     if recipients:
         msg = Message(
-            subject=f'[Tutorstvo]: {subject}',
+            subject=f'[Tutorstvo Gimnazija Šentvid]: {subject}',
             sender=current_app.config['MAIL_ADDRESS'],
             recipients=recipients,
             html=render_template('email.html', content=content, title=heading)
@@ -456,13 +468,13 @@ def removeRole(*, context, role, id):
 @views.route('/home')
 @login_required
 def home(*, context):
-    setup_group = False
-    if not current_user(context).groups:
-        setup_group = True
-
     lessons = Lesson.query.filter(Lesson.id.in_(current_user(context).getSelectedSubjects()))
+    subjects = Subject.query.filter_by().all()
 
-    return render_template('index.html', current_user=current_user(context), lessons=lessons, subject_db=Subject, user_db=User, setup_group=setup_group)
+    msg = random.randrange(0, len(BECOME_A_TUTOR_MESSAGES))
+    random_message = BECOME_A_TUTOR_MESSAGES[msg].split(' - ')
+
+    return render_template('index.html', current_user=current_user(context), lessons=lessons, subjects=subjects, subject_db=Subject, user_db=User, become_a_tutor_message=random_message)
 
 months = {
     1: 'januar',
@@ -730,7 +742,7 @@ def select_group(*, context):
     if form:
         group = form.get('group')
 
-        if group in ['y1', 'y2', 'y3', 'y4']:
+        if group in ALLOWED_GROUPS:
             current_user(context).groups = group
             db.session.commit()
 

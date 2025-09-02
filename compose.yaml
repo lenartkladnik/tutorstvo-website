@@ -13,6 +13,8 @@ services:
       context: .
     ports:
       - 5000:5000
+    volumes:
+      - .:/app
 
 # The commented out section below is an example of how to define a PostgreSQL
 # database that your application can use. `depends_on` tells Docker Compose to
@@ -41,8 +43,6 @@ services:
 #       interval: 10s
 #       timeout: 5s
 #       retries: 5
-# volumes:
-#   db-data:
 # secrets:
 #   db-password:
 #     file: db/password.txt

@@ -129,9 +129,9 @@
                 <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
                 <div class="subscript-left" style="display: flex; justify-content: start;">
                     <span>0/</span>
-                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" name="min" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" placeholder="_" name="min" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
                     <span>-</span>
-                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" name="max" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
+                    <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" placeholder="_" name="max" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
                 </div>
                 <input type="hidden" name="datetime" id="fullDatetime" required />
             </div>
