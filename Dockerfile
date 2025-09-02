@@ -51,7 +51,7 @@ RUN mkdir -p instance
 RUN chown -R appuser:appuser instance
 
 # Switch to the non-privileged user to run the application.
-USER appuser
+# USER appuser
 
 # Expose the port that the application listens on.
 EXPOSE 5000
