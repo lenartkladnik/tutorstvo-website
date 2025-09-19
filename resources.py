@@ -1,8 +1,10 @@
+from typing import Callable, Any
 import itsdangerous
 from datetime import datetime
 import os
 from functools import wraps
 from flask import abort
+import math
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
@@ -58,7 +60,7 @@ def confirm_token(token):
 
         return email
     except itsdangerous.SignatureExpired:
-        return False 
+        return False
     except itsdangerous.BadSignature:
         return False
 
@@ -77,6 +79,21 @@ def log(message: str, log_path: str, log_type: str = 'info'):
 
     with open(LOG_PATH, 'a') as f:
         f.write(log_string + '\n')
+
+def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None = None) -> bool:
+    for name, func in checks:
+        try:
+            if not func(form[name]
+                        if getter == "[]" or not getter 
+                        else form.get(name) if getter == "get"
+                        else form.getlist(name) if getter == "getlist"
+                        else None):
+                log("Form validation failed!", "resources.validate_form")
+                return False
+        except KeyError:
+            return False
+
+    return True
 
 def debug_only(func):
     """
@@ -102,6 +119,9 @@ def get_leaderboard(User, Subject):
 
     sorted_tutors = sorted(sorted_tutors, key=lambda t: User.query.filter_by(username=t).first().score)[::-1]
 
+    if len(sorted_tutors) == 0:
+        return []
+
     max_score = User.query.filter_by(username=sorted_tutors[0]).first().score
     lb = zip(sorted_tutors,
              [i + 1 for i in range(len(sorted_tutors))],
@@ -110,3 +130,65 @@ def get_leaderboard(User, Subject):
              )
 
     return lb
+
+def get_free_for_date(date: datetime, schedule: list, hour):
+    all_classrooms = ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj"]
+    always_free = ["knj"]
+
+    if hour == "PRE" or hour == "O":
+        return all_classrooms
+
+    hour = int(hour)
+
+    slovenian_days = [
+        "Nedelja",
+        "Ponedeljek", 
+        "Torek",
+        "Sreda",
+        "Četrtek",
+        "Petek",
+        "Sobota"
+    ]
+
+    school_year_start = datetime(date.year, 9, 1)
+    if date < school_year_start:
+        school_year_start = datetime(school_year_start.year - 1, 9, 1)
+
+    ms_per_week = 7 * 24 * 60 * 60 * 1000
+    week_diff = math.floor((date - school_year_start).total_seconds() * 1000 / ms_per_week)
+
+    week_type = "A" if week_diff % 2 == 0 else "B"
+    day_name = slovenian_days[date.weekday() + 1 if date.weekday() < 6 else 0]
+
+    indices = []
+    for i, entry in enumerate(schedule):
+        if entry[0] == week_type and entry[1] == day_name:
+            indices.append(i)
+
+    if hour >= len(indices):
+        return all_classrooms
+
+    free = schedule[indices[hour]].copy()
+    if not free:
+        return all_classrooms
+
+    free.append(always_free)
+    free[3] = [*free[3], *free[4]]
+    free.pop()
+
+    return free[3]
+
+def parse_hour(time_str):
+    periods = [
+        {'label': 'PRE', 'start': '7:10', 'end': '7:55'},
+        {'label': 'O',   'start': '10:25', 'end': '10:55'},
+        {'label': '6',   'start': '12:40', 'end': '13:25'},
+        {'label': '7',   'start': '13:30', 'end': '14:15'},
+        {'label': '8',   'start': '14:20', 'end': '15:05'},
+    ]
+
+    for period in periods:
+        if time_str.strip() == period['start'].strip():
+            return period['label']
+
+    return None

@@ -16,4 +16,4 @@
 <span class="description" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if lesson.filled >= lesson.max else 'filter: none;' }}">
     {{ lesson.description }}
 </span>
-<span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if lesson.filled >= lesson.max else 'filter: none;' }}">{{ lesson.tutors(subject_db, user_db) }}</span>
+<span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if lesson.filled >= lesson.max else 'filter: none;' }}">{{ lesson.tutors }}</span>

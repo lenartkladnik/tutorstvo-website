@@ -11,6 +11,7 @@ log("Setting up configuration.", "extensions")
 app = Flask(__name__)
 
 app.config.from_object(app_config)
+app.jinja_env.add_extension('jinja2.ext.do')
 
 mail = Mail(app)
 db = SQLAlchemy(app)

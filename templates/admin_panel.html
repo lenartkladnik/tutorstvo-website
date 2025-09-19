@@ -148,7 +148,7 @@
 {% set id = 'remove-user-form' %}
 {% set action = '/remove-user/' + remove_user_id %}
 {% set method = 'GET' %}
-{% set question = "Ali ste prepričani da želite odstraniti uporabnika " + formatTitle(User.query.filter_by(id=remove_user_id).first().username) + "?"%}
+{% set question = "Ali ste prepričani da želite odstraniti uporabnika " + formatTitle(User.query.filter_by(id=remove_user_id).first().username) + "?" %}
 {% set show = True %}
 {% include 'confirm_snippet.html' %}
 {% endif %}
@@ -209,10 +209,10 @@
             <h1>Tutorji</h1>
             <div class="sub-container">
                 {% for subjects, tutor in tutors %}
-                    <form id="tutor-manage-form" method="POST">
+                  <form id="tutor-manage-form-{{ tutor.id }}" method="POST">
                         <input type="hidden" name="tutor_manage_id" value="{{ tutor.id }}">
                     </form>
-                    <div class="sub" style="min-width: fit-content; cursor: pointer;" onclick="document.getElementById('tutor-manage-form').submit()">
+                    <div class="sub" style="min-width: fit-content; cursor: pointer;" onclick="document.getElementById('tutor-manage-form-{{ tutor.id }}').submit()">
                         <span style="pointer-events: none;">{{ formatTitle(tutor.username) }}</span>
                         <span class="element" style="padding-left: 5px; padding-right: 5px; pointer-events: none;">{{ len(subjects) }}</span>
                         <a href="/remove-role/tutor/{{ tutor.id }}">
@@ -261,7 +261,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- <div class="sub-panel">
           <h1>Groups</h1>
               <div class="sub-container">
@@ -321,21 +321,30 @@
             {% endfor %}
             <input type="hidden" id='all-users' value='{{ user_map | tojson }}'>
 
-            <div class="usersContainer sub-container" id="users-container">
-                <!-- {% for user in users_filtered %}
-                <div class="sub">
-                    <form method="POST">
-                        <button name="manage_user_id" value="{{ user.id }}" style="all: unset; font-size: 16px; cursor: pointer;">{{ formatTitle(user.username) }}</button>
-                    </form>
-
-                    <form method="POST" style="width: fit-content;">
-                        <input type="hidden" name="remove_user_id" value="{{ user.id }}" />
-                        <input type="image" name="remove" value="" src="{{ url_for('static', filename='close.svg') }}" />
-                    </form>
-                </div>
-                {% endfor %} --!>
-            </div>
+            <div class="usersContainer sub-container" id="users-container"></div>
         </div>
+
+        <div class="sub-panel">
+            <h1>Potencialni tutorji</h1>
+
+            <div style="position: relative;">
+                <input type="text" id='potential-tutors-search' placeholder="Uporabniško ime" maxlength="76" />
+            </div>
+
+            {% set potential_tutors_map = {} %}
+            {% for user in all_potential_tutors %}
+                {% set _ = potential_tutors_map.update({user.id: formatTitle(user.username)}) %}
+            {% endfor %}
+            {% set applied_for_map = {} %}
+            {% for user in all_potential_tutors %}
+                {% set _ = applied_for_map.update({user.id: user.applied_subjects.capitalize()}) %}
+            {% endfor %}
+            <input type="hidden" id='all-potential-tutors' value='{{ potential_tutors_map | tojson }}'>
+            <input type="hidden" id='applied-for' value='{{ applied_for_map | tojson }}'>
+
+            <div class="usersContainer sub-container" id="potential-tutors-container"></div>
+        </div>
+
     </div>
 
     <div style="margin: 20px 20px;">
@@ -382,7 +391,7 @@
         });
     }
 
-    function updateSearch() {
+    function updateSearchUsers() {
         const container = document.getElementById('users-container');
         container.innerHTML = '';
         const search = document.getElementById('users-search').value;
@@ -405,7 +414,34 @@
         }
     }
 
+    function updateSearchPotentialTutors() {
+        const container = document.getElementById('potential-tutors-container');
+        container.innerHTML = '';
+        const search = document.getElementById('potential-tutors-search').value;
+        const all = JSON.parse(document.getElementById('all-potential-tutors').value);
+        const applied_subjects = JSON.parse(document.getElementById('applied-for').value);
+
+        let match = {};
+
+        if (search) {
+            for (let i in all) {
+                if (all[i].toLowerCase().startsWith(search.toLowerCase())) {
+                    match[i] = all[i];
+                }
+            }
+        } else {
+            match = all;
+        }
+
+        for (let i in match) {
+            createPotentialTutorField(i, match[i], applied_subjects[i]);
+        }
+    }
+
     function createUserField(id, username) {
+        const container = "users-container";
+        const action = "remove";
+
         const subDiv = document.createElement("div");
         subDiv.className = "sub";
 
@@ -426,12 +462,12 @@
 
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
-        hiddenInput.name = "remove_user_id";
+        hiddenInput.name = `${action}_user_id`;
         hiddenInput.value = `${id}`;
 
         const imageInput = document.createElement("input");
         imageInput.type = "image";
-        imageInput.name = "remove";
+        imageInput.name = action;
         imageInput.value = "";
 
         imageInput.src = "static/close.svg";
@@ -442,12 +478,76 @@
         subDiv.appendChild(manageForm);
         subDiv.appendChild(removeForm);
 
-        document.getElementById('users-container').appendChild(subDiv);
+        document.getElementById(container).appendChild(subDiv);
+    }
+
+    function createPotentialTutorField(id, username, applied_subjects) {
+        const container = "potential-tutors-container";
+        const action_0 = "reject_from_tutor";
+        const action_1 = "accept_as_tutor";
+
+        const subDiv = document.createElement("div");
+        subDiv.className = "sub";
+        subDiv.style = "padding: 0px 6px 0px 0px;";
+
+        const manageForm = document.createElement("form");
+        manageForm.method = "POST";
+
+        const manageButton = document.createElement("button");
+        manageButton.name = "manage_user_id";
+        manageButton.value = `${id}`;
+        manageButton.style.cssText = "all: unset; font-size: 16px; cursor: pointer;";
+        manageButton.textContent = username;
+
+        manageForm.appendChild(manageButton);
+
+        const removeForm = document.createElement("form");
+        removeForm.method = "POST";
+        removeForm.style.width = "fit-content";
+
+        const hiddenInput = document.createElement("input");
+        hiddenInput.type = "hidden";
+        hiddenInput.name = `potential_tutor_user_id`;
+        hiddenInput.value = `${id}`;
+
+        const imageInput0 = document.createElement("input");
+        imageInput0.type = "image";
+        imageInput0.name = action_0;
+        imageInput0.value = "";
+
+        imageInput0.src = "static/close.svg";
+
+        const imageInput1 = document.createElement("input");
+        imageInput1.type = "image";
+        imageInput1.name = action_1;
+        imageInput1.value = "";
+
+        imageInput1.src = "static/check.svg";
+
+        removeForm.appendChild(hiddenInput);
+        removeForm.appendChild(imageInput0);
+        removeForm.appendChild(imageInput1);
+
+        const subjDiv = document.createElement("div");
+        subjDiv.className = "subj-potential-tutor";
+
+        const span = document.createElement("span");
+        span.textContent = applied_subjects;
+        span.style = "padding-right: initial";
+        subjDiv.appendChild(span);
+
+        subDiv.appendChild(subjDiv);
+        subDiv.appendChild(manageForm);
+        subDiv.appendChild(removeForm);
+
+        document.getElementById(container).appendChild(subDiv);
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        updateSearch();
-        document.getElementById('users-search').addEventListener("input", updateSearch);
+        updateSearchUsers();
+        updateSearchPotentialTutors();
+        document.getElementById('users-search').addEventListener("input", updateSearchUsers);
+        document.getElementById('potential-tutors-search').addEventListener("input", updateSearchPotentialTutors);
     });
 </script>
 {% endblock %}

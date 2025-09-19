@@ -99,7 +99,7 @@
 
                 {% endfor %}
 
-                {% if current_user.is_tutor(subject_db) or current_user.is_admin() %}
+                {% if current_user.is_tutor() or current_user.is_admin() %}
                 {% for _ in range(max_len - len(row_lessons) + 1) %}
                 <a href="#" class="add-subject" data-date="{{ tracker.date }}"></a>
                 {% endfor %}
@@ -111,14 +111,14 @@
     </table>
 </div>
 
-{% if current_user.is_tutor(subject_db) or current_user.is_admin() %}
+{% if current_user.is_tutor() or current_user.is_admin() %}
 <form method="POST" id="subject-form">
     <div class="add-subject-form" data-frcls="{{ free_classrooms }}">
         <div class="subject-box-grid">
           <div style="display: flex;">
-                <select class="title" name="title" required>
+                <select class="title" id="subject-selector" name="title" required>
                     {% for subject in subjects %}
-                    <option value="{{ subject }}">{{ subject }}</option>
+                    <option value="{{ subject }}">{{ subject.capitalize() }}</option>
                     {% endfor %}
                 </select>
                 <!-- <input class="classroom" placeholder="Kje" maxlength="3" name="classroom" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /> --!>
@@ -128,31 +128,98 @@
             <div style="display: float;">
                 <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
                 <div class="subscript-left" style="display: flex; justify-content: start;">
-                    <span>0/</span>
+                    <span class="people-amount">0/</span>
                     <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" placeholder="_" name="min" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-                    <span>-</span>
+                    <span class="people-amount">-</span>
                     <input pattern="^[1-9]+$" maxlength="2" class="dynamicInput" placeholder="_" name="max" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
                 </div>
                 <input type="hidden" name="datetime" id="fullDatetime" required />
             </div>
         </div>
 
-        <textarea class="description" name="description" rows="3" cols="160" maxlength="90" style="resize: none;" placeholder="Opis" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
-        <p class="counter"><span id="description-char-count">0</span>/90</p>
-        
+        <textarea class="description" name="description" rows="3" cols="160" maxlength="60" style="resize: none;" placeholder="Opis" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
+        <p class="counter"><span id="description-char-count">0</span>/60</p>
+        <a class="dropdown-arrow" id="tutors-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi ostale tutorje  ';" onclick="toggleVisibilityById('tutors-select-top'); this.classList.toggle('open');"></a>
+        <div class="tutors-select" id="tutors-select-top" style="visibility: hidden;">
+            <div id="tutor-container">
+                <input type="hidden" id="selected-tutors" name="tutors"></input>
+                <div id="tutors-select-container"></div>
+                <script>
+                    function setTutorAddOptions() {
+                        var subject = document.getElementById('subject-selector').value;
+                        var tutors_select = document.getElementById('tutors-select-container');
+                        var all_tutors = {{ all_tutors | safe }};
+                        var tutors = all_tutors[subject];
+
+                        tutors_select.innerHTML = '';
+
+                        if (tutors.length == 0) {
+                            tutors_select.innerHTML = '<span style="width: max-content;">Za ta predmet ni ostalih tutorjev.</span>';
+                        }
+
+                        for (let i = 0; i < tutors.length; i++) {
+                            let container = document.createElement('div');
+                            container.classList.add('tutors-select-sub-container');
+
+                            let checkbox = document.createElement('input');
+                            checkbox.type = "checkbox";
+
+                            let id = `tutors-select-option-${i}`;
+                            checkbox.id = id;
+
+                            container.appendChild(checkbox);
+
+                            let label = document.createElement('label');
+                            label.setAttribute('for', id);
+                            label.textContent = tutors[i];
+
+                            container.appendChild(label);
+
+                            tutors_select.appendChild(container);
+                        }
+                    }
+
+                    setTutorAddOptions();
+
+                    document.getElementById('subject-selector').addEventListener("change", setTutorAddOptions);
+
+                    function updateSelectedTutors() {
+                        const checkboxes = document.querySelectorAll('#tutors-select-container input[type="checkbox"]:checked');
+                        const labels = Array.from(checkboxes).map(cb => cb.parentElement.textContent.trim());
+                        document.getElementById('selected-tutors').value = labels.join(', ');
+                    }
+
+                    document.querySelectorAll('#tutors-select-container input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.addEventListener('change', updateSelectedTutors);
+                    });
+
+                    document.addEventListener('click', function(e) {
+                        let tutors_select_top = document.getElementById('tutors-select-top');
+                        let dropdown_arrow = document.getElementById('tutors-select-dropdown-arrow');
+
+                        if (!tutors_select_top.contains(e.target) && !dropdown_arrow.contains(e.target) && dropdown_arrow.classList.contains('open')) {
+                            toggleVisibilityById('tutors-select-top');
+                            dropdown_arrow.classList.toggle('open');
+                        }
+                    });
+                </script>
+            </div>
+        </div>
+
         <div style="display: flex; justify-content: space-between;">
             <div class="submit-form">
-                <input class="subject-form-button" type="image" src="{{ url_for('static', filename='add.svg') }}" />
-                <input class="subject-form-button" type="submit" value="ADD" />
+                <input class="subject-form-button" type="submit" value="Shrani" />
+            </div>
+            <div class="submit-form">
+                <a href="#" class="subject-form-button close-add-subject">
+                    <input class="subject-form-button subject-form-button-decline" type="button" value="Prekliči" />
+                </a>
             </div>
 
             <input type="hidden" name="group" value="{{ current_user.get_year() }}" />
 
         </div>
     </div>
-    <a href="#" class="close-add-subject">
-        <img src="{{ url_for('static', filename='remove.svg') }}" class="close-button">
-    </a>
 </form>
 {% endif %}
 
@@ -175,6 +242,8 @@
             <input type="submit" id="search-submit" value="" class="search-submit invert" style="background-image: url({{ url_for('static', filename='search.svg') }});" />
         </div>
 
+        {% set has_results = [] %}
+
         <div class="results" style="margin-left: 10px;">
             {% for lesson in lessons %}
             {% if lesson.subject == search %}
@@ -186,6 +255,7 @@
                     {% endif %}
 
                     {% set show_date = True %}
+                    {% do has_results.append(True) %}
                     {% include "subject_snippet.html" %}
 
                 </div>
@@ -193,6 +263,10 @@
             {% endif %}
             {% endfor %}
         </div>
+
+        {% if not any(has_results) and search %}
+        <span class="center-text">Za izbran predmet ne obstaja nobena ura.</span>
+        {% endif %}
     </div>
 </form>
 
@@ -203,5 +277,5 @@
     document.getElementsByClassName('tutorstvo-search')[0].click();
 </script>
 {% endif %}
-<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> -->
 {% endblock %}

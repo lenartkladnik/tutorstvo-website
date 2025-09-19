@@ -1,12 +1,12 @@
 from extensions import db
-from resources import formatTitle, get_leaderboard
+from resources import get_leaderboard
 
 class Subject(db.Model):
     __bind_key__ = 'subjects'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
-    tutors = db.Column(db.String(100), nullable=False)
+    tutors = db.Column(db.String(1000), nullable=False)
     learning_resources = db.Column(db.String(1000), default='', nullable=False)
 
     def get_tutors(self) -> list:
@@ -26,6 +26,18 @@ class User(db.Model):
     email = db.Column(db.String(100), default='', nullable=False)
     dark_mode = db.Column(db.Boolean, default=False, nullable=False)
     score = db.Column(db.Integer, default=0)
+    applied_subjects = db.Column(db.String(200), default='', nullable=False)
+    rejected = db.Column(db.Integer, default=0)
+    tutoring_subjects = db.Column(db.String(200), default='', nullable=False)
+
+    def is_rejected(self) -> bool:
+        return self.rejected == 1
+
+    def get_applied_subjects(self) -> list:
+        return self.applied_subjects.split(', ')
+
+    def get_tutoring_subjects(self) -> list:
+        return self.tutoring_subjects.split(',')
 
     def get_groups(self) -> list:
         groups_str = self.groups
@@ -40,25 +52,14 @@ class User(db.Model):
     def is_admin(self):
         return self.role == 'admin'
 
-    def is_tutor(self, subject_db):
-        for subject in subject_db.query.all():
-            for i in subject.get_tutors():
-                if i == self.username:
-                    return True
+    def is_tutor(self):
+        return self.rejected == -1
 
-        return False
-
-    def tutor_for(self, subject_db):
-        subjects = []
-        for subject in subject_db.query.all():
-            for i in subject.get_tutors():
-                if i == self.username:
-                    subjects.append(subject.name)
-
-        return subjects
+    def tutor_for(self):
+        return list(map(str.lower, self.get_tutoring_subjects())) if self.rejected == -1 else []
 
     def is_tutor_for(self, subject):
-        return self.username in subject.get_tutors()
+        return subject.name.lower() in self.tutor_for()
 
     def subjects(self, subject_db):
         subjects = []
@@ -66,7 +67,7 @@ class User(db.Model):
         if self.is_admin():
             subjects = list(map(lambda x: x.name, subject_db.query.all()))
 
-        elif self.is_tutor(subject_db):
+        elif self.is_tutor():
             for subject in subject_db.query.all():
                 for i in subject.get_tutors():
                     if i == self.username:
@@ -77,8 +78,8 @@ class User(db.Model):
     def getSelectedSubjects(self):
         return list((filter(None, self.selected_subjects.split(','))))
 
-    def getLeaderBoardPos(self, subject_db):
-        if not self.is_tutor(subject_db):
+    def getLeaderBoardPos(self):
+        if not self.is_tutor():
             return None
 
         lb = get_leaderboard(self, Subject)
@@ -98,6 +99,7 @@ class Lesson(db.Model):
     datetime = db.Column(db.String(100), nullable=False)
     description = db.Column(db.String(200), nullable=False)
     filled = db.Column(db.Integer, default=0)
+    tutors = db.Column(db.String(1000), default='', nullable=False)
 
     def get_groups(self) -> list:
         groups_str = self.groups
@@ -107,24 +109,8 @@ class Lesson(db.Model):
     def isInGroup(self, group: str) -> bool:
         return group in self.get_groups()
 
-    def get_tutors(self, subject_db: Subject, user_db: User) -> list:
-        for_subj = subject_db.query.filter_by(name=self.subject).first().get_tutors()
-
-        tutors = []
-        for username in for_subj:
-            user = user_db.query.filter_by(username=username).first()
-            if not user:
-                continue
-
-            for group in user.get_groups():
-                if self.isInGroup(group):
-                    tutors.append(user.username)
-                    break
-
-        return tutors
-
-    def tutors(self, subject_db: Subject, user_db: User) -> str:
-        return ', '.join(list(map(formatTitle, self.get_tutors(subject_db, user_db))))
+    def get_tutors(self) -> list:
+        return self.tutors.split(', ')
 
 class Group(db.Model):
     __bind_key__ = 'groups'

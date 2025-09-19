@@ -14,8 +14,7 @@
 </head>
 
 <body data-dark-mode="{{ 'true' if current_user.dark_mode else 'false' }}">
-    <!-- Included here because of the applyBlurToBody call that may happen and is defined in script.js -->
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    {% block body_top %}{% endblock %}
     {% if not current_user.groups %}
         <div class="option-group center">
             <form action="/select-group" method="post">
@@ -31,14 +30,20 @@
                 <button type="submit" class="option-button">Potrdi</button>
             </form>
         </div>
-        <script>applyBlurToBody();</script>
+        <script>
+            function applyBlurToBody() {
+                document.body.classList.add('blur');
+                document.body.classList.add('blur-move-fix');
+            }
+            applyBlurToBody();
+        </script>
     {% endif %}
     <main>
         <div class="topbar">
             <a href="home" class="logo">
                 <img src="{{ url_for('static', filename='tutorstvo.svg') }}" class="logo noInvert">
             </a>
-            
+
             <div class="topbar-right">
                 <a href="toggle-dark-mode" class="button">
                     <img src="{{ url_for('static', filename='dark_mode.svg') }}" id="toggle-dark-mode" class="icon noInvert">
@@ -86,8 +91,8 @@
             </ul>
         </aside>
     </main>
-    <!-- script.js is included at the top of body, since there is a possible call to a function in it at the top -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
     {% block script %}{% endblock %}
 </body>
 

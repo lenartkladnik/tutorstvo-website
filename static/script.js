@@ -81,7 +81,7 @@ function getFreeForDate(date, schedule, hour) {
     "Ponedeljek",
     "Torek",
     "Sreda",
-    "četrtek",
+    "Četrtek",
     "Petek",
     "Sobota"
   ];
@@ -257,7 +257,7 @@ function applyDateSelector() {
     });
 };
 
-var add_subject = document.getElementsByClassName("add-subject")
+var add_subject = document.getElementsByClassName("add-subject");
 
 for (let i = 0; i < add_subject.length; i++){
     add_subject[i].addEventListener("click", function(event) {
@@ -270,11 +270,20 @@ for (let i = 0; i < add_subject.length; i++){
         const free_cls = JSON.parse(element.dataset.frcls);
 
         const cls_opts = getFreeForDate(parseDate(this.dataset.date), free_cls, parseHour(this.dataset.date));
-        console.log(cls_opts);
+
+        // https://stackoverflow.com/questions/3364493/how-do-i-clear-all-options-in-a-dropdown-box
+        function removeOptions(selectElement) {
+            var i, L = selectElement.options.length - 1;
+            for(i = L; i >= 0; i--) {
+                selectElement.remove(i);
+            }
+        }
+
         const cls_sel = document.getElementById("classroom-selector");
-        cls_sel.options = [];
+        removeOptions(cls_sel);
+
         for (var i = 0; i < cls_opts.length; i++) {
-            cls_sel.options[cls_sel.options.length] = new Option(cls_opts[i], cls_opts[i]);
+            cls_sel.options[cls_sel.options.length] = new Option(cls_opts[i].toUpperCase(), cls_opts[i]);
         }
 
         buttons = document.getElementsByClassName("subject-form-button");
@@ -337,7 +346,7 @@ if (close_add_subject){
         let element = document.getElementsByClassName("add-subject-form")[0];
         element.style.display = "none";
         element.style.visibility = "hidden";
-        
+
         buttons = document.getElementsByClassName("subject-form-button");
         for (let i = 0; i < buttons.length; i++){
             buttons[i].style.visibility = "hidden";
@@ -351,13 +360,27 @@ if (close_add_subject){
         let top_bar = document.getElementsByClassName("topbar")[0];
         top_bar.style.filter = "none";
         top_bar.style.pointerEvents = "auto";
-        
+
         let sidebar = document.getElementsByClassName("sidebar")[0];
         sidebar.style.filter = "none";
         sidebar.style.pointerEvents = "auto";
 
         document.getElementsByClassName("close-add-subject")[0].style.visibility = "hidden";
     });
+}
+
+var people_amount = document.getElementsByClassName("people-amount");
+if (people_amount) {
+    for (var i = 0; i < people_amount.length; i++) {
+        people_amount[i].addEventListener("click", function(event) {
+            var nextSibling = event.target.nextSibling;
+            while(nextSibling && nextSibling.nodeType != 1 && nextSibling.nodeName.toLowerCase() != "input") {
+                nextSibling = nextSibling.nextSibling
+            }
+
+            nextSibling.focus();
+        });
+    }
 }
 
 var search = document.getElementsByClassName("tutorstvo-search")[0];
@@ -369,7 +392,7 @@ search.addEventListener("click", function(event) {
     let element = document.getElementsByClassName("search-results")[0];
     element.style.display = "grid";
     element.style.visibility = "visible";
-        
+
     let main = document.getElementsByClassName("main")[0]
     main.style.filter = "blur(1.2px)";
     main.style.pointerEvents = "none";
@@ -377,7 +400,7 @@ search.addEventListener("click", function(event) {
     let top_bar = document.getElementsByClassName("topbar")[0]
     top_bar.style.filter = "blur(1.2px)";
     top_bar.style.pointerEvents = "none";
-        
+
     let sidebar = document.getElementsByClassName("sidebar")[0]
     sidebar.style.filter = "blur(1.2px)";
     sidebar.style.pointerEvents = "none";
@@ -589,6 +612,16 @@ function showElement(element) {
         element.style.visibility = 'visible';
     } catch (e) {
         console.warn(`[hideElement] Couldn't show element '${element}': ${e}`);
+    }
+}
+
+function toggleVisibilityById(id) {
+    const element = document.getElementById(id);
+    if (element.style.visibility == 'hidden') {
+        showElement(element);
+    }
+    else {
+        hideElement(element);
     }
 }
 
