@@ -3,7 +3,7 @@ import itsdangerous
 from datetime import datetime
 import os
 from functools import wraps
-from flask import abort, url_for, request
+from flask import abort, url_for
 import math
 from urllib.parse import urlparse
 
@@ -195,10 +195,10 @@ def parse_hour(time_str):
     return None
 
 def safe_redirect(target: str):
+    print(target)
     if not target:
-        return False
+        return url_for('views.home')
 
     ref_url = urlparse(target)
-    server_name = request.host
 
-    return target if ref_url.netloc == server_name else url_for('views.home')
+    return target if ref_url.netloc in secrets['hosts'].split(',') else url_for('views.home')
