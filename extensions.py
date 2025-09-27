@@ -32,4 +32,13 @@ auth = Auth(
     redirect_uri=app.config["REDIRECT_URI"]
 )
 
+BASE_SUBJECTS = ["Matematika", "Slovenščina", "Zgodovina", "Psihologija", "Angleščina", "Sociologija", "Španščina", "Nemščina", "Francoščina", "Kemija", "Fizika", "Biologija", "Geografija", "Glasba", "Likovna", "Drugo"]
+
+with app.app_context():
+    if Subject.query.count() == 0:
+        for subject in BASE_SUBJECTS:
+            db.session.add(Subject(name=subject, tutors=''))
+
+        db.session.commit()
+
 log("Configuration is set up.", "extensions")
