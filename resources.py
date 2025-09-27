@@ -3,8 +3,9 @@ import itsdangerous
 from datetime import datetime
 import os
 from functools import wraps
-from flask import abort
+from flask import abort, url_for, request
 import math
+from urllib.parse import urlparse
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
@@ -192,3 +193,12 @@ def parse_hour(time_str):
             return period['label']
 
     return None
+
+def safe_redirect(target: str):
+    if not target:
+        return False
+
+    ref_url = urlparse(target)
+    server_name = request.host
+
+    return target if ref_url.netloc == server_name else url_for('views.home')

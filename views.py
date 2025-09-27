@@ -5,7 +5,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, get_free_for_date, parse_hour
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, get_free_for_date, parse_hour, safe_redirect
 from datetime import datetime, timedelta
 import csv
 import random
@@ -186,7 +186,7 @@ def toggleDarkMode(*, context):
     current_user(context).dark_mode = not current_user(context).dark_mode
     db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route("/logout")
 @login_required
@@ -323,7 +323,7 @@ def modify_user(*, context, id):
         user = User.query.filter_by(id=id).first()
 
         if not user:
-            return redirect(request.referrer)
+            return redirect(safe_redirect(request.referrer))
 
         is_admin = form.get('is-admin')
         year = form.get('year')
@@ -356,7 +356,7 @@ def modify_user(*, context, id):
 
         db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/modify-tutor/<int:id>', methods=['POST'])
 @login_required
@@ -368,7 +368,7 @@ def modify_tutor(*, context, id):
         user = User.query.filter_by(id=id).first()
 
         if not user:
-            return redirect(request.referrer)
+            return redirect(safe_redirect(request.referrer))
 
         tutor_for = form.getlist('tutor-for')
 
@@ -389,7 +389,7 @@ def modify_tutor(*, context, id):
 
         db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/remove-user/<int:id>')
 @login_required
@@ -399,7 +399,7 @@ def remove_user(*, context, id):
     user = User.query.filter_by(id=id).first()
 
     if not user:
-        return redirect(request.referrer)
+        return redirect(safe_redirect(request.referrer))
 
     uname = user.username
     email = user.email
@@ -410,7 +410,7 @@ def remove_user(*, context, id):
 
     log(f"Remove user {uname} ({email}).", "views.remove_user")
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/add-subject', methods=['GET', 'POST'])
 @login_required
@@ -425,7 +425,7 @@ def addSubject(*, context):
 
             db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/remove-subject/<name>')
 @login_required
@@ -437,7 +437,7 @@ def removeSubject(*, context, name):
 
     db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/add-group', methods=['POST'])
 @login_required
@@ -454,7 +454,7 @@ def addGroup(*, context):
         except:
             pass
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/remove-group/<id>')
 @login_required
@@ -466,7 +466,7 @@ def removeGroup(*, context, id):
 
     db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/add-to-group',  methods=['POST'])
 @login_required
@@ -479,13 +479,13 @@ def addToGroup(*, context):
         user = User.query.filter_by(username=username).first()
 
         if not user:
-            return redirect(request.referrer)
+            return redirect(safe_redirect(request.referrer))
 
         user.groups = ','.join(groups)
 
         db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/add-role/<role>', methods=['POST'])
 @login_required
@@ -516,7 +516,7 @@ def addRole(*, context, role):
         else:
             flash('There is no user with that name.', 'danger')
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/remove-role/<role>/<int:id>')
 @login_required
@@ -526,7 +526,7 @@ def removeRole(*, context, role, id):
     user = User.query.filter_by(id=id).first()
 
     if not user:
-        return redirect(request.referrer)
+        return redirect(safe_redirect(request.referrer))
 
     if role == 'admin':
         user.role = 'user'
@@ -544,7 +544,7 @@ def removeRole(*, context, role, id):
 
     db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/home')
 @login_required
@@ -763,7 +763,7 @@ def selectLesson(*, context, id):
 
         return redirect(url_for('views.home'))
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/tutorstvo/remove/<int:id>')
 @login_required
@@ -788,7 +788,7 @@ def deselectLesson(*, context, id):
 
         return redirect(url_for('views.home'))
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/remove-lesson/<int:id>')
 @login_required
@@ -798,7 +798,7 @@ def removeLesson(*, context, id):
     subjects = current_user(context).subjects(Subject)
 
     if not lesson or not subjects:
-        return redirect(request.referrer)
+        return redirect(safe_redirect(request.referrer))
 
     if lesson.subject.lower() in subjects:
         db.session.delete(lesson)
@@ -808,7 +808,7 @@ def removeLesson(*, context, id):
     else:
         print(f'{current_user(context).username} tried to delete without permissions.')
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/learning-resources')
 @login_required
@@ -831,14 +831,14 @@ def add_learning_resource(*, context):
         subject = Subject.query.filter_by(name=subject_name).first()
 
         if not subject:
-            return redirect(request.referrer)
+            return redirect(safe_redirect(request.referrer))
 
         if current_user(context).is_tutor_for(subject):
             subject.learning_resources = ','.join(set(subject.get_learning_resources() + [url]))
 
             db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/remove-learning-resource')
 @login_required
@@ -854,14 +854,14 @@ def remove_learning_resource(*, context):
         subject = Subject.query.filter_by(name=subject_name).first()
 
         if not subject:
-            return redirect(request.referrer)
+            return redirect(safe_redirect(request.referrer))
 
         if current_user(context).is_tutor_for(subject) or current_user(context).is_admin():
             subject.learning_resources = ','.join(set(subject.get_learning_resources()) - set([url]))
 
             db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/select-group', methods=["POST"])
 @login_required
@@ -873,7 +873,7 @@ def select_group(*, context):
         current_user(context).groups = group
         db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/leaderboard')
 @login_required
@@ -895,4 +895,4 @@ def become_a_tutor(*, context):
         current_user(context).applied_subjects = ', '.join(subject_names)
         db.session.commit()
 
-    return redirect(request.referrer)
+    return redirect(safe_redirect(request.referrer))
