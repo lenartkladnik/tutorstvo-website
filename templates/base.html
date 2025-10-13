@@ -89,6 +89,12 @@
                 {% include 'sidebar_snippet.html' %}
                 {% endif %}
             </ul>
+            <ul style="top: 90vh; position: absolute; width: 96%;">
+                {% set href = 'https://github.com/lenartkladnik/tutorstvo-website/issues/new' %}
+                {% set img = 'bugs.svg' %}
+                {% set text = 'Prijavi napako' %}
+                {% include 'sidebar_snippet.html' %}
+            </ul>
         </aside>
     </main>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

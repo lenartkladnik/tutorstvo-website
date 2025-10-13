@@ -1,4 +1,5 @@
-<div class="subject-box-grid" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if lesson.filled >= lesson.max else 'filter: none;' }}">
+{% set gray_subject_box = lesson.filled >= lesson.max or lesson.has_passed() %}
+<div class="subject-box-grid" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">
     <div style="display: flex;">
         <span class="title">{{ lesson.subject }}</span>
         <span class="classroom">{{ lesson.classroom }}</span>
@@ -13,7 +14,7 @@
         {% endif %}
     </div>
 </div>
-<span class="description" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if lesson.filled >= lesson.max else 'filter: none;' }}">
+<span class="description" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">
     {{ lesson.description }}
 </span>
-<span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if lesson.filled >= lesson.max else 'filter: none;' }}">{{ lesson.tutors }}</span>
+<span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">{{ lesson.tutors }}</span>

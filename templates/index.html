@@ -2,23 +2,23 @@
 
 {% block body_top %}
 {% if not current_user.is_tutor() %}
-<div class="popup" id="become-a-tutor">
+<div class="popup" id="become-a-tutor" class="popup-form">
     <form method="POST" action="/become-a-tutor">
         <span>Predmet:</span>
         <br />
         <div>
-              <select class="title" id="original-title-become-a-tutor" name="subjects[]" required>
+              <select class="popup-form-element upper title" id="original-title-become-a-tutor" name="subjects[]" required>
                   <option value="/" selected>Izberi predmet</option>
                   {% for subject in subjects %}
                   <option value="{{ subject.name }}">{{ subject.name.capitalize() }}</option>
                   {% endfor %}
               </select>
         </div>
-        <button type="button" class="title" onclick="var el = document.getElementById('original-title-become-a-tutor'); el.parentNode.appendChild(el.cloneNode(true));">+</button>
+        <button type="button" class="popup-form-element title" onclick="var el = document.getElementById('original-title-become-a-tutor'); el.parentNode.appendChild(el.cloneNode(true));">+</button>
         <br />
         <br />
-        <button type="button" class="become-a-tutor-button text-button" onclick="hideElementById('become-a-tutor'); removeBlurFromBody();">Prekliči</button>
-        <button type="submit" class="become-a-tutor-button text-button" onclick="">Potrdi</button>
+        <button type="button" class="popup-form-button text-button" onclick="hideElementById('become-a-tutor'); removeBlurFromBody();">Prekliči</button>
+        <button type="submit" class="popup-form-button text-button" onclick="">Potrdi</button>
     </form>
 </div>
 {% endif %}
@@ -43,6 +43,7 @@
         </div>
     </div>
 
+    {% if not current_user.is_rejected() %}
     <div class="sub-panel" id="tutor-board">
         {% if current_user.is_tutor() %}
         {% set i = current_user.getLeaderBoardPos() %}
@@ -60,9 +61,10 @@
         {% else %}
         <p>{{ become_a_tutor_message[0] }}</p>
         <p>{{ become_a_tutor_message[1] }}</p>
-        <button type="button" class="become-a-tutor-button text-button" onclick="showElementById('become-a-tutor');applyBlurToBody();">Postani tutor</button>
+        <button type="button" class="popup-form-button text-button" onclick="showElementById('become-a-tutor');applyBlurToBody();">Postani tutor</button>
         {% endif %}
     </div>
+    {% endif %}
 </div>
 <!-- <img src="{{ url_for('static', filename='logo.svg') }}" class="noInvert big-logo"> -->
 {% endblock %}

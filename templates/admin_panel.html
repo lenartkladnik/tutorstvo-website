@@ -208,13 +208,13 @@
         <div class="sub-panel">
             <h1>Tutorji</h1>
             <div class="sub-container">
-                {% for subjects, tutor in tutors %}
+                {% for subjects_, tutor in tutors %}
                   <form id="tutor-manage-form-{{ tutor.id }}" method="POST">
                         <input type="hidden" name="tutor_manage_id" value="{{ tutor.id }}">
                     </form>
                     <div class="sub" style="min-width: fit-content; cursor: pointer;" onclick="document.getElementById('tutor-manage-form-{{ tutor.id }}').submit()">
                         <span style="pointer-events: none;">{{ formatTitle(tutor.username) }}</span>
-                        <span class="element" style="padding-left: 5px; padding-right: 5px; pointer-events: none;">{{ len(subjects) }}</span>
+                        <span class="element" style="padding-left: 5px; padding-right: 5px; pointer-events: none;">{{ len(subjects_) }}</span>
                         <a href="/remove-role/tutor/{{ tutor.id }}">
                             <img src="{{ url_for('static', filename='close.svg') }}">
                         </a>
@@ -261,49 +261,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- <div class="sub-panel">
-          <h1>Groups</h1>
-              <div class="sub-container">
-                {% for id, group in zip(group_ids, groups) %}
-                    <div class="sub">
-                        <span class="input" style="text-transform: none;">{{ group }}</span>
-                        <a href="/remove-group/{{ id }}">
-                            <img src="{{ url_for('static', filename='close.svg') }}">
-                        </a>
-                    </div>
-                {% endfor %}
-                <div class="sub">
-                    <form action="/add-group" method="POST">
-                        <input name="name" type="text" class="dynamicInput input" style="text-transform: none;" maxlength="11" required placeholder="Group name" autocomplete="off" />
-                        <input type="image" src="{{ url_for('static', filename='add-no-circle.svg') }}" />
-                    </form>
-                </div>
-            </div>
-        </div> --!>
-        
-        <!-- <div class="sub-panel">
-            <h1>Stari Testi</h1>
-            
-            <form action="/add-test-im" method="POST" enctype="multipart/form-data">
-                <div id="dropContainer" class="dropContainer">
-                    <img style="z-index: -1" src="{{ url_for('static', filename='add-no-circle.svg') }}">
-                </div>
-            
-                
-                <div style="display: flex;">
-                    <input type="file" id="fileInput" name="file" required />
-                    <select class="element" name="subject" style="width: max-content; margin: 8px 1px;" required>
-                        {% for subject in subjects %}
-                        <option value="{{ subject.name }}">{{ subject.name }}</option>
-                        {% endfor %}
-                    </select>
-                    <input type="number" class="element" name="number" min="1" max="99" placeholder="N" style="margin: 8px 1px; width: max-content;" required />
-                </div>
-                
-                <input type="submit" style="float:right" value="Upload"/>
-            </form>
-        </div> --!>
 
         <div class="sub-panel">
             <h1>Uporabniki</h1>
@@ -368,19 +325,6 @@
 
 {% block script %}
 <script>
-    // https://stackoverflow.com/questions/8006715/drag-drop-files-into-standard-html-file-input
-    // var dropContainer = document.getElementById('dropContainer');
-    
-    // dropContainer.ondragover = dropContainer.ondragenter = function(evt) {
-    //    evt.preventDefault();
-    // };
-      
-    // dropContainer.ondrop = function(evt) {
-    //     fileInput.files = evt.dataTransfer.files;
-      
-    //     evt.preventDefault();
-    // };
-
     const usersSelect = document.getElementsByClassName('users-select');
 
     for (var i = 0; i < usersSelect.length; i++) {
@@ -485,6 +429,7 @@
         const container = "potential-tutors-container";
         const action_0 = "reject_from_tutor";
         const action_1 = "accept_as_tutor";
+        const action_2 = "block_from_tutor";
 
         const subDiv = document.createElement("div");
         subDiv.className = "sub";
@@ -504,6 +449,7 @@
         const removeForm = document.createElement("form");
         removeForm.method = "POST";
         removeForm.style.width = "fit-content";
+        removeForm.style.gap = "0";
 
         const hiddenInput = document.createElement("input");
         hiddenInput.type = "hidden";
@@ -524,7 +470,15 @@
 
         imageInput1.src = "static/check.svg";
 
+        const imageInput2 = document.createElement("input");
+        imageInput2.type = "image";
+        imageInput2.name = action_2;
+        imageInput2.value = "";
+
+        imageInput2.src = "static/block.svg";
+
         removeForm.appendChild(hiddenInput);
+        removeForm.appendChild(imageInput2);
         removeForm.appendChild(imageInput0);
         removeForm.appendChild(imageInput1);
 

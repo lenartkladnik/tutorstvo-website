@@ -41,8 +41,8 @@ const darkModeEnabled = document.body.dataset.darkMode === 'true';
 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
 
-const all_classrooms = ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj"]
-const always_free = ["knj"]
+const all_classrooms = ["knj", "msv", "mpk", "mdž"] // ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj", "msv", "mpk", "mdž"]
+const always_free = ["knj", "msv", "mpk", "mdž"]
 
 document.addEventListener('DOMContentLoaded', function() {
     if (darkModeEnabled) {
@@ -74,6 +74,10 @@ function getFreeForDate(date, schedule, hour) {
     return all_classrooms;
   }
 
+  if (hour == "PO") {
+    return ["msv", "mpk", "mdž"];
+  }
+
   hour = Number(hour);
 
   const slovenianDays = [
@@ -92,7 +96,7 @@ function getFreeForDate(date, schedule, hour) {
     schoolYearStart.setFullYear(schoolYearStart.getFullYear() - 1);
   }
 
-  const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+  const msPerWeek = 604800000 // 7 * 24 * 60 * 60 * 1000;
   const weekDiff = Math.floor((date - schoolYearStart) / msPerWeek);
 
   const weekType = (weekDiff % 2 === 0) ? "A" : "B";
@@ -138,6 +142,7 @@ function parseHour(dateStr) {
     { label: '6',   start: '12:40', end: '13:25' },
     { label: '7',   start: '13:30', end: '14:15' },
     { label: '8',   start: '14:20', end: '15:05' },
+    { label: 'PO',  start: '15:10', end: '23:59'}
   ];
 
   date = parseDate(dateStr);
@@ -657,4 +662,33 @@ function applyBlurToBody() {
 function removeBlurFromBody() {
     document.body.classList.remove('blur');
     document.body.classList.remove('blur-move-fix');
+}
+
+// modified from https://stackoverflow.com/questions/2264072/detect-a-finger-swipe-through-javascript-on-the-iphone-and-android
+let touchstartX = new Map()
+let touchendX = new Map()
+
+function checkDirection(element, func) {
+  if (Math.abs(touchstartX.get(getMapKeyFromElFu(element, func)) - touchendX.get(getMapKeyFromElFu(element, func))) > 200) {
+    if (touchendX.get(getMapKeyFromElFu(element, func)) < touchstartX.get(getMapKeyFromElFu(element, func))) func('left');
+    if (touchendX.get(getMapKeyFromElFu(element, func)) > touchstartX.get(getMapKeyFromElFu(element, func))) func('right');
+  }
+}
+
+function getMapKeyFromElFu(element, func) {
+  return element.outerHTML + '||' + func.toString();
+}
+
+function addSwipeListener(element, func) {
+  touchstartX.set(getMapKeyFromElFu(element, func), 0);
+  touchendX.set(getMapKeyFromElFu(element, func), 0);
+
+  element.addEventListener('touchstart', e => {
+    touchstartX.set(getMapKeyFromElFu(element, func), e.changedTouches[0].screenX);
+  })
+
+  element.addEventListener('touchend', e => {
+    touchendX.set(getMapKeyFromElFu(element, func), e.changedTouches[0].screenX);
+    checkDirection(element, func);
+  })
 }

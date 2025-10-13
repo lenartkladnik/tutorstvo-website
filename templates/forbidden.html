@@ -1,0 +1,7 @@
+{% set status_code = '' %}
+{% include "error_base.html" %}
+
+{% block content %}
+<!-- <span class="welcome" style="top: 180px; font-size: 50px;">>:/</span> -->
+<span class="welcome" style="top: 250px;">Zaradi ne prisotnosti na urah je dostop do portala blokiran do {{ current_user.rejection_expires_at_str() }}.</span>
+{% endblock %}

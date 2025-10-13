@@ -1,5 +1,7 @@
+from ast import expr_context
 from extensions import db
-from resources import get_leaderboard
+from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_USER, is_lesson_removable
+from datetime import datetime, timedelta
 
 class Subject(db.Model):
     __bind_key__ = 'subjects'
@@ -28,10 +30,44 @@ class User(db.Model):
     score = db.Column(db.Integer, default=0)
     applied_subjects = db.Column(db.String(200), default='', nullable=False)
     rejected = db.Column(db.Integer, default=0)
+    rejected_at = db.Column(db.String)
     tutoring_subjects = db.Column(db.String(200), default='', nullable=False)
+    issues = db.Column(db.Integer, default=0)
 
     def is_rejected(self) -> bool:
         return self.rejected == 1
+
+    def reject(self):
+        self.rejected = 1
+        self.rejected_at = datetime.now().strftime(DATETIME_FORMAT_PY)
+
+    def accept(self):
+        self.rejected = -1
+        self.rejected_at = None
+        self.issues = 0
+
+    def rejection_expires_at(self) -> datetime | None:
+        if not self.rejected_at:
+            return None
+
+        return datetime.strptime(self.rejected_at, DATETIME_FORMAT_PY) + timedelta(weeks=4)
+
+    def rejection_expires_at_str(self) -> str:
+        exp = self.rejection_expires_at()
+        if not exp:
+            return ''
+
+        return datetime.strftime(exp, DATETIME_FORMAT_USER)
+
+    def rejection_expired(self) -> bool:
+        exp = self.rejection_expires_at()
+        if not exp:
+            return True
+
+        if datetime.now() > exp:
+            return True
+
+        return False
 
     def get_applied_subjects(self) -> list:
         return self.applied_subjects.split(', ')
@@ -53,10 +89,10 @@ class User(db.Model):
         return self.role == 'admin'
 
     def is_tutor(self):
-        return self.rejected == -1
+        return self.tutor_for() != []
 
     def tutor_for(self):
-        return list(map(str.lower, self.get_tutoring_subjects())) if self.rejected == -1 else []
+        return list(filter(None, map(str.lower, self.get_tutoring_subjects())))
 
     def is_tutor_for(self, subject):
         return subject.name.lower() in self.tutor_for()
@@ -100,6 +136,16 @@ class Lesson(db.Model):
     description = db.Column(db.String(200), nullable=False)
     filled = db.Column(db.Integer, default=0)
     tutors = db.Column(db.String(1000), default='', nullable=False)
+    passed = db.Column(db.Integer, default=-1)
+
+    def has_passed(self) -> bool:
+        return self.passed == 1
+
+    def is_removable(self) -> bool:
+        return is_lesson_removable(self)
+
+    def set_passed(self):
+        self.passed = 1
 
     def get_groups(self) -> list:
         groups_str = self.groups
@@ -111,6 +157,14 @@ class Lesson(db.Model):
 
     def get_tutors(self) -> list:
         return self.tutors.split(', ')
+
+    def get_users(self, user_db) -> list:
+        users = []
+        for user in user_db.query.filter_by():
+            if self in Lesson.query.filter(Lesson.id.in_(user.getSelectedSubjects())):
+                users.append(user)
+
+        return users
 
 class Group(db.Model):
     __bind_key__ = 'groups'

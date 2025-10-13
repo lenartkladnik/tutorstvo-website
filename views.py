@@ -31,6 +31,8 @@ def current_user(ctx) -> User:
     return user
 
 FREE_CLASSROOMS_CSV = 'ucilnice.csv'
+DEFAULT_DEBUG_USER = 'Debug User'
+current_debug_user = DEFAULT_DEBUG_USER
 # TESTS_DIR = 'static/tests' # Stari testi
 # ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp'} # Allowed extension for image upload
 BECOME_A_TUTOR_MESSAGES = [
@@ -136,20 +138,45 @@ def tutor_required(func):
 def fake_login(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        return func(*args, context={'user': {'name': 'Debug User', 'preferred_username': 'lenart@kladnik.cc'}}, **kwargs)
+        name = current_debug_user
+        email = f'{current_debug_user.replace(' ', '_')}@example.com'
+
+        current_user({'user': { 'name': name, 'preferred_username': email}})
+
+        return func(*args, context={'user': {'name': name, 'preferred_username': email}}, **kwargs)
 
     return wrapper
 
 def login_required(func):
     """
-    Rename auth.login_required to login_required
+    Rename auth.login_required to login_required and add debug functionality.
+    Add user blocking functionality.
     """
 
     if DEBUG < 2:
-        return auth.login_required(func)
+        login = auth.login_required
 
     else:
-        return fake_login(func)
+        login = fake_login
+
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        context = kwargs.get('context')
+        user = current_user(context)
+        if user.is_rejected() and user.rejection_expired():
+            user.accept()
+            db.session.commit()
+
+        elif user.issues >= 2:
+            if not user.is_rejected():
+                user.reject()
+                db.session.commit()
+
+            return render_template("forbidden.html", current_user=user)
+
+        return func(*args, **kwargs)
+
+    return login(wrapper)
 
 @views.route('/new_user')
 @debug_only
@@ -158,10 +185,19 @@ def new_user_debug():
 
     return redirect(url_for('views.home'))
 
+@views.route('/switch_user')
+@debug_only
+def switch_user_debug():
+    global current_debug_user
+
+    current_debug_user = request.args.get('username')
+
+    return redirect(url_for('views.home'))
+
 @views.route('/test_email')
 @debug_only
 def send_email_debug():
-    sendEmail('Test', ['lenart.kladnik@gmail.com'], f'This is a test email. Sent at {datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.')
+    sendEmail('Test', ['lenart@kladnik.cc'], f'This is a test email. Sent at {datetime.now().strftime("%d-%m-%Y_%H-%M-%S")}.')
 
     return redirect(url_for('views.home'))
 
@@ -174,6 +210,25 @@ def score_debug(sc, id):
         db.session.commit()
 
     return redirect(url_for('views.leaderboard'))
+
+@views.route('/new_lesson')
+@debug_only
+def new_lesson_debug():
+    new_lesson = Lesson(
+            groups="y2",
+            subject="Matematika",
+            classroom="knj",
+            min="1",
+            max="2",
+            datetime=f"{datetime.now().year}/{datetime.now().day + 1}/{datetime.now().month} 00:00",
+            description="debug lesson",
+            tutors='Test'
+        )
+    db.session.add(new_lesson)
+
+    db.session.commit()
+
+    return redirect(url_for('views.tutorstvo'))
 
 @views.route('/')
 @login_required
@@ -227,6 +282,7 @@ def adminPanel(*, context):
         session['tutor_manage_id'] = form.get('tutor_manage_id')
         session['reject_potential_tutor'] = form.get('reject_from_tutor.x')
         session['accept_potential_tutor'] = form.get('accept_as_tutor.x')
+        session['block_potential_tutor'] = form.get('block_from_tutor.x')
 
         filter_data = {}
         if form.get('filter-include-year'):
@@ -256,13 +312,25 @@ def adminPanel(*, context):
     potential_tutor_user_id = session.pop('potential_tutor_user_id', None)
     reject_potential_tutor = session.pop('reject_potential_tutor', None)
     accept_potential_tutor = session.pop('accept_potential_tutor', None)
+    block_potential_tutor = session.pop('block_potential_tutor', None)
 
     if reject_potential_tutor:
         user_to_be_rejected = User.query.filter_by(id=potential_tutor_user_id).first()
         if user_to_be_rejected:
             user_to_be_rejected.tutoring_subjects = ''
             user_to_be_rejected.applied_subjects = ''
-            user_to_be_rejected.rejected = 1
+            user_to_be_rejected.tutor = -1
+
+            db.session.commit()
+
+            log(f"Rejected user {user_to_be_rejected.username} ({user_to_be_rejected.email}) from being a tutor.", "views.adminPanel")
+
+    elif block_potential_tutor:
+        user_to_be_rejected = User.query.filter_by(id=potential_tutor_user_id).first()
+        if user_to_be_rejected:
+            user_to_be_rejected.tutoring_subjects = ''
+            user_to_be_rejected.applied_subjects = ''
+            user_to_be_rejected.reject()
 
             db.session.commit()
 
@@ -281,7 +349,7 @@ def adminPanel(*, context):
 
             user_to_be_accepted.tutoring_subjects = user_to_be_accepted.applied_subjects
             user_to_be_accepted.applied_subjects = ''
-            user_to_be_accepted.rejected = -1
+            user_to_be_accepted.tutor = 1
 
             db.session.commit()
 
@@ -340,7 +408,6 @@ def modify_user(*, context, id):
 
         if tutor_for:
             user.tutoring_subjects = ','.join(tutor_for)
-            user.rejected = -1
 
             for subject in Subject.query.all():
                 s = Subject.query.filter_by(name=subject.name).first()
@@ -374,7 +441,6 @@ def modify_tutor(*, context, id):
 
         if tutor_for:
             user.tutoring_subjects = ','.join(tutor_for)
-            user.rejected = -1
             for subject in Subject.query.all():
                 s = Subject.query.filter_by(name=subject.name).first()
 
@@ -503,7 +569,6 @@ def addRole(*, context, role):
             elif role == 'tutor':
                 subjects = list(set(request.form.getlist('subjects[]')))
                 user.tutoring_subjects = ','.join(subjects)
-                user.rejected = -1
 
                 for subject in subjects:
                     s = Subject.query.filter_by(name=subject).first()
@@ -536,7 +601,7 @@ def removeRole(*, context, role, id):
             user.role = 'user'
 
         subjects = Subject.query.filter_by().all()
-        user.rejected = 1
+        user.tutoring_subjects = ''
 
         for s in subjects:
             if user.username in s.get_tutors():
@@ -601,7 +666,7 @@ def isInTimeRange(time: str, timeRange: tuple[str, str], format: str = "%H:%M") 
 @views.route('/tutorstvo', methods=['GET', 'POST'])
 @login_required
 def tutorstvo(*, context):
-    side = [('PRE', '7:10', '7:55'), ('O', '10:25', '10:55'), ('6', '12:40', '13:25'), ('7', '13:30', '14:15'), ('8', '14:20', '15:05')]
+    side = [('PRE', '7:10', '7:55'), ('O', '10:25', '10:55'), ('6', '12:40', '13:25'), ('7', '13:30', '14:15'), ('8', '14:20', '15:05'), ('PO', '15:10', '23:59')]
     free_classrooms = []
     with open(FREE_CLASSROOMS_CSV, "r") as f:
         reader = csv.reader(f)
@@ -616,12 +681,14 @@ def tutorstvo(*, context):
                 tutor_user = User.query.filter_by(username=tutor).first()
                 if tutor_user:
                     tutor_user.score += lesson.filled
+            lesson.set_passed()
 
+        if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=7):
             db.session.delete(lesson)
 
         db.session.commit()
 
-    if request.form and (current_user(context).is_tutor() or current_user(context).is_admin()):
+    if request.form and (current_user(context).is_tutor()):
         form = request.form
 
         if not validate_form(form,
@@ -631,12 +698,14 @@ def tutorstvo(*, context):
                       ('title', lambda x: Subject.query.filter_by(name = x).first() != None),
                       ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.now() and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
                       ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
-                      ('tutors', lambda x: (not x and current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first())) or any([User.query.filter_by(username=y).first().is_tutor_for(Subject.query.filter_by(name=form['title']).first()) for y in x.split(', ')]))
+                      ('tutors', lambda x: (current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first())) and any([User.query.filter_by(username=y).first().is_tutor_for(Subject.query.filter_by(name=form['title']).first()) for y in x.split(', ')]) if x else True),
+                      ('datetime', lambda x: (not any(i.subject.lower() == form['title'].lower() for i in Lesson.query.filter_by(datetime=x)))),
+                      ('tutors', lambda _: (not any(any(j.username in ([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', ')) for j in i.get_tutors()) for i in Lesson.query.filter_by(datetime=form['datetime']))))
                             ):
-            return redirect(url_for('views.tutorstvo'))
+            return redirect(safe_redirect(request.referrer))
 
         if int(form['min']) > int(form['max']):
-            return redirect(url_for('views.tutorstvo'))
+            return redirect(safe_redirect(request.referrer))
 
         new_lesson = Lesson(
             groups=form['group'],
@@ -648,7 +717,6 @@ def tutorstvo(*, context):
             description=form['description'],
             tutors=', '.join([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', '))
         )
-        print(new_lesson.tutors)
         db.session.add(new_lesson)
 
         db.session.commit()
@@ -711,6 +779,7 @@ def tutorstvo(*, context):
         lessons_by_row.append((max_len, data))
 
     startNext = [(startDate - timedelta(days=7)).strftime(DATETIME_FORMAT_PY), (startDate + timedelta(days=7)).strftime(DATETIME_FORMAT_PY)]
+    show_arrow = datetime.strptime(startNext[0], DATETIME_FORMAT_PY) >= datetime.today() - timedelta(days=abs(14 - datetime.today().weekday()))
     subjects = current_user(context).subjects(Subject)
     all_subjects = Subject.query.all()
 
@@ -739,7 +808,14 @@ def tutorstvo(*, context):
 
         all_tutors.update({subject.name: c_tutors})
 
-    return render_template('tutorstvo.html', current_user=current_user(context), mobile=mobile, search=search, lessons=lessons, subjects=subjects, all_tutors=all_tutors, all_subjects=all_subjects, subject_db=Subject, user_db=User, days=days_, startNext=startNext, rows=rows, enumerate=enumerate, free_classrooms=free_classrooms, len=len, str=str, any=any)
+    return render_template('tutorstvo.html',
+                           current_user=current_user(context), mobile=mobile,
+                           search=search, lessons=lessons, subjects=subjects,
+                           all_tutors=all_tutors, all_subjects=all_subjects,
+                           subject_db=Subject, user_db=User, days=days_,
+                           startNext=startNext, rows=rows, enumerate=enumerate,
+                           free_classrooms=free_classrooms,
+                           show_arrow=show_arrow, len=len, str=str, any=any)
 
 @views.route('/tutorstvo/add/<int:id>')
 @login_required
@@ -771,6 +847,9 @@ def deselectLesson(*, context, id):
     lesson = Lesson.query.filter_by(id=id).first()
     selected = current_user(context).getSelectedSubjects()
 
+    if not lesson.is_removable():
+        return redirect(safe_redirect(request.referrer))
+
     if lesson:
         current_user(context).selected_subjects = ','.join(set(selected) - set(str(id)))
 
@@ -795,12 +874,15 @@ def deselectLesson(*, context, id):
 @tutor_required
 def removeLesson(*, context, id):
     lesson = Lesson.query.filter_by(id=id).first()
+    if not lesson.is_removable():
+        return redirect(safe_redirect(request.referrer))
+
     subjects = current_user(context).subjects(Subject)
 
     if not lesson or not subjects:
         return redirect(safe_redirect(request.referrer))
 
-    if lesson.subject.lower() in subjects:
+    if lesson.subject in subjects:
         db.session.delete(lesson)
 
         db.session.commit()
@@ -887,12 +969,37 @@ def leaderboard(*, context):
 @login_required
 def become_a_tutor(*, context):
     if request.form and validate_form(request.form,
-                                      ('subjects[]', lambda x: not False in [Subject.query.filter_by(name = i).first() != None for i in x]),
+                                      ('subjects[]', lambda x: not False in [Subject.query.filter_by(name = i).first() != None or i == "/" for i in x]),
                                       getter="getlist"
-                                     ):
+        ) and not current_user(context).is_rejected():
         form = request.form
         subject_names = list(filter(lambda x: x != '/', set(form.getlist('subjects[]'))))
         current_user(context).applied_subjects = ', '.join(subject_names)
+        db.session.commit()
+
+    return redirect(safe_redirect(request.referrer))
+
+@views.route('/new_issue', methods=["POST"])
+@login_required
+@tutor_required
+def new_issue(*, context):
+    if not validate_form(request.form,
+                         ('id', lambda x: Lesson.query.filter_by(id=x[0]).first() != None),
+                         ('users[]', lambda x: not any([not (i == '/' or User.query.filter_by(username=i).first() in Lesson.query.filter_by(id=request.form['id']).first().get_users(User)) for i in x])),
+                         getter='getlist'
+                         ):
+        return redirect(safe_redirect(request.referrer))
+
+    users = [User.query.filter_by(username=i).first() if i != '/' else '' for i in request.form.getlist('users[]')]
+    exists = False
+    for user in users:
+        if user:
+            user.issues += 1
+            exists = True
+
+    if exists:
+        db.session.delete(Lesson.query.filter_by(id=request.form['id']).first())
+
         db.session.commit()
 
     return redirect(safe_redirect(request.referrer))

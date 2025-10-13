@@ -5,6 +5,9 @@
 {% endblock %}
 
 {% block content %}
+
+{% set expl = "MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca" %}
+
 {% if not mobile %}
 <div class="main center">
 {% else %}
@@ -18,7 +21,7 @@
     </div>
 
     <div class="right tutorstvo-arrows">
-        {% if startNext[0] %}
+        {% if show_arrow %}
         <a onclick="window.location.href='tutorstvo'" style="cursor: pointer;">
             <span class="icon text-button">&laquo</span>
         </a>
@@ -85,11 +88,39 @@
 
                 {% if lesson %}
                 {% set tracker.was_lesson = True %}
-                <div class="subject-box" onclick="{{ '' if lesson.filled >= lesson.max else 'window.location.href=\'tutorstvo/add/' + str(lesson.id) + '\'' }}" style="cursor: pointer;">
-                    {% if lesson.subject.lower() in subjects %}
+                <div class="subject-box" onclick="{{ '' if lesson.filled >= lesson.max or lesson.has_passed() else 'window.location.href=\'tutorstvo/add/' + str(lesson.id) + '\'' }}" style="cursor: {{ 'pointer' if not lesson.has_passed() else 'default' }};">
+                    {% if lesson.subject in subjects %}
+                    {% if not lesson.has_passed() and lesson.is_removable() %}
                         <a href="remove-lesson/{{ lesson.id }}" class="remove-lesson">
                             <img src="{{ url_for('static', filename='remove.svg') }}">
                         </a>
+                    {% elif lesson.has_passed() %}
+                        <div class="popup" id="lesson-{{ lesson.id }}-issues" class="popup-form">
+                            <form method="POST" action="/new_issue">
+                                <input type="hidden" value="{{ lesson.id }}" name="id">
+                                <span>Kateri dijaki se niso udeležili ure?</span>
+                                <br />
+                                <div>
+                                    <select class="popup-form-element title" id="original-user-select" name="users[]" required>
+                                        <option value="/" selected>Izberi uporabnika</option>
+                                        {% for user in lesson.get_users(user_db) %}
+                                        <option value="{{ user.username }}">{{ user.username }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <button type="button" class="popup-form-element title" onclick="var el = document.getElementById('original-user-select'); el.parentNode.appendChild(el.cloneNode(true));">+</button>
+                                <br />
+                                <br />
+                                <button type="button" class="popup-form-button text-button" onclick="hideElementById('lesson-{{ lesson.id }}-issues');">Prekliči</button>
+                                <button type="submit" class="popup-form-button text-button" onclick="">Potrdi</button>
+                            </form>
+                        </div>
+                        <a href="#" onclick="showElementById('lesson-{{ lesson.id }}-issues');" class="issue-lesson">
+                            <img src="{{ url_for('static', filename='issue.svg') }}">
+                        </a>
+                    {% endif %}
+                    {% else %}
+                    <img title="{{ expl }}" src="{{ url_for('static', filename='info.svg') }}" class="info-icon">
                     {% endif %}
 
                     {% set show_date = False %}
@@ -99,7 +130,7 @@
 
                 {% endfor %}
 
-                {% if current_user.is_tutor() or current_user.is_admin() %}
+                {% if current_user.is_tutor() %}
                 {% for _ in range(max_len - len(row_lessons) + 1) %}
                 <a href="#" class="add-subject" data-date="{{ tracker.date }}"></a>
                 {% endfor %}
@@ -111,7 +142,7 @@
     </table>
 </div>
 
-{% if current_user.is_tutor() or current_user.is_admin() %}
+{% if current_user.is_tutor() %}
 <form method="POST" id="subject-form">
     <div class="add-subject-form" data-frcls="{{ free_classrooms }}">
         <div class="subject-box-grid">
@@ -121,9 +152,9 @@
                     <option value="{{ subject }}">{{ subject.capitalize() }}</option>
                     {% endfor %}
                 </select>
-                <!-- <input class="classroom" placeholder="Kje" maxlength="3" name="classroom" required autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" /> --!>
                 <select class="classroom element" style="width: 80px;" name="classroom" id="classroom-selector" required></select>
-            </div>
+                <img title="{{ expl }}" src="{{ url_for('static', filename='info.svg') }}" class="info-icon">
+          </div>
 
             <div style="display: float;">
                 <img src="{{ url_for('static', filename='person.svg') }}" class="icon-left" style="float: left;">
@@ -277,5 +308,17 @@
     document.getElementsByClassName('tutorstvo-search')[0].click();
 </script>
 {% endif %}
+<script>
+    function nextWeek(direction) {
+      if (direction === 'left') {
+        window.location.href='tutorstvo?date={{ startNext[1] }}';
+      }
+
+      if (direction === 'right') {
+        window.location.href='tutorstvo?date={{ startNext[0] }}';
+      }
+    }
+    addSwipeListener(document.getElementsByClassName('week')[0], nextWeek);
+</script>
 <!-- <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script> -->
 {% endblock %}

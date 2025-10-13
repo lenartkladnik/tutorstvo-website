@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
+DATETIME_FORMAT_USER = '%d/%m/%Y'
+
 log_dir = 'logs'
 if not os.path.isdir(log_dir):
     os.mkdir(log_dir)
@@ -82,16 +84,22 @@ def log(message: str, log_path: str, log_type: str = 'info'):
         f.write(log_string + '\n')
 
 def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None = None) -> bool:
+    if secrets['FORM_VALIDATION_OFF'] == '1':
+        return True
+
     for name, func in checks:
+        args = "undefined"
         try:
-            if not func(form[name]
-                        if getter == "[]" or not getter 
-                        else form.get(name) if getter == "get"
-                        else form.getlist(name) if getter == "getlist"
-                        else None):
-                log("Form validation failed!", "resources.validate_form")
+            args = form[name] if getter == "[]" or not getter else form.get(name) if getter == "get" else form.getlist(name) if getter == "getlist" else None
+            if not func(args):
+                log(f"Form validation failed on function: '{func.__name__}' with args: '{args}' ({name}).", "resources.validate_form")
                 return False
         except KeyError:
+            log(f"Form validation failed on function: '{func.__name__}' because of missing args.", "resources.validate_form")
+            return False
+
+        except Exception as e:
+            log(f"Form validation failed on function: '{func.__name__}' with args: '{args}' ({name}) and exception: '{e}'.", "resources.validate_form")
             return False
 
     return True
@@ -133,8 +141,8 @@ def get_leaderboard(User, Subject):
     return lb
 
 def get_free_for_date(date: datetime, schedule: list, hour):
-    all_classrooms = ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj"]
-    always_free = ["knj"]
+    all_classrooms = ["knj", "msv", "mpk", "mdž"]# ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj", "msv", "mpk", "mdž"]
+    always_free = ["knj", "msv", "mpk", "mdž"]
 
     if hour == "PRE" or hour == "O":
         return all_classrooms
@@ -195,10 +203,17 @@ def parse_hour(time_str):
     return None
 
 def safe_redirect(target: str):
-    print(target)
     if not target:
         return url_for('views.home')
 
     ref_url = urlparse(target)
 
     return target if ref_url.netloc in secrets['hosts'].split(',') else url_for('views.home')
+
+def is_lesson_removable(lesson):
+    lesson_datetime = datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS)
+    lesson_datetime_20h = lesson_datetime.replace(hour=20, minute=0, second=0, microsecond=0)
+    if datetime.now() > lesson_datetime_20h:
+        return False
+
+    return True
