@@ -1,10 +1,13 @@
 from flask import render_template
 from waitress import serve
 from extensions import app
-from resources import log, DEBUG
+from resources import log, DEBUG, FORM_VALIDATION_OFF
 
 if DEBUG:
-    log(f"Running in debug mode, with level {DEBUG}!", "app", "warning")
+    log(f"Running in debug mode, with level {DEBUG}, DO NOT RUN IN A PRODUCTION ENVIRONMENT!", "app", "warning")
+
+if FORM_VALIDATION_OFF:
+    log(f"Running with form validation disabled, DO NOT RUN IN A PRODUCTION ENVIRONMENT!", "app", "warning")
 
 log("Sarting server", "app")
 

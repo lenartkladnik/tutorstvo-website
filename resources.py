@@ -38,6 +38,8 @@ if DEBUG.isdigit():
 else:
     raise RuntimeError(f"DEBUG must be an int.")
 
+FORM_VALIDATION_OFF = secrets['FORM_VALIDATION_OFF'] == '1'
+
 serializer = itsdangerous.URLSafeTimedSerializer(secrets['db'])
 
 def formatTitle(title: str) -> str:
@@ -84,7 +86,7 @@ def log(message: str, log_path: str, log_type: str = 'info'):
         f.write(log_string + '\n')
 
 def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None = None) -> bool:
-    if secrets['FORM_VALIDATION_OFF'] == '1':
+    if FORM_VALIDATION_OFF:
         return True
 
     for name, func in checks:
