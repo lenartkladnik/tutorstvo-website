@@ -6,7 +6,7 @@
 
 {% block content %}
 
-{% set expl = "MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca" %}
+{% set expl = "MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca\nDSP - Dijaška soba pri plesni dvorani" %}
 
 {% if not mobile %}
 <div class="main center">
@@ -143,8 +143,12 @@
 </div>
 
 {% if current_user.is_tutor() %}
+{% if lesson_creation_error %}
+<div class="popup" style="visibility: visible;">
+    <span>{% lesson_creation_error %}</span>
+</div>
 <form method="POST" id="subject-form">
-    <div class="add-subject-form" data-frcls="{{ free_classrooms }}">
+    <div class="add-subject-form" data-frcls="{{ free_classrooms }}" data-clsrdata="{{ classroom_data }}">
         <div class="subject-box-grid">
           <div style="display: flex;">
                 <select class="title" id="subject-selector" name="title" required>

@@ -156,7 +156,7 @@ class Lesson(db.Model):
         return group in self.get_groups()
 
     def get_tutors(self) -> list:
-        return self.tutors.split(', ')
+        return list(filter(None, self.tutors.split(', ')))
 
     def get_users(self, user_db) -> list:
         users = []

@@ -1,7 +1,7 @@
 from flask import render_template
 from waitress import serve
 from extensions import app
-from resources import log, DEBUG, FORM_VALIDATION_OFF
+from resources import log, DEBUG, FORM_VALIDATION_OFF, secrets
 
 if DEBUG:
     log(f"Running in debug mode, with level {DEBUG}, DO NOT RUN IN A PRODUCTION ENVIRONMENT!", "app", "warning")
@@ -27,7 +27,12 @@ def internal_server_error(e):
 
 if __name__ == "__main__":
     host = "0.0.0.0"
-    port = 5000
-    threads = 6
+
+    try:
+        port = int(secrets["port"])
+        threads = int(secrets["threads"])
+    except ValueError:
+        raise RuntimeError("'port' and 'threads' values must be integers!")
+
     log(f"The app is served on {host}:{port} with {threads} threads.", "app");
     serve(app, host=host, port=port, threads=threads)

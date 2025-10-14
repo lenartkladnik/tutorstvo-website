@@ -41,9 +41,6 @@ const darkModeEnabled = document.body.dataset.darkMode === 'true';
 const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 const isMobile = /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
 
-const all_classrooms = ["knj", "msv", "mpk", "mdž"] // ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj", "msv", "mpk", "mdž"]
-const always_free = ["knj", "msv", "mpk", "mdž"]
-
 document.addEventListener('DOMContentLoaded', function() {
     if (darkModeEnabled) {
         toggleDarkMode();
@@ -70,12 +67,11 @@ function selectGroup(group) {
 }
 
 function getFreeForDate(date, schedule, hour) {
-  if (hour == "PRE" || hour == "O") {
-    return all_classrooms;
-  }
+  let element = document.getElementsByClassName("add-subject-form")[0];
+  const classroom_data = JSON.parse(element.dataset.clsrdata.replace(/'/g, '"'));
 
-  if (hour == "PO") {
-    return ["msv", "mpk", "mdž"];
+  if (hour == "PRE" || hour == "O" || hour == "PO") {
+    return [...classroom_data["ALWAYS"], ...classroom_data[hour]].filter(Boolean);
   }
 
   hour = Number(hour);
@@ -111,10 +107,11 @@ function getFreeForDate(date, schedule, hour) {
     }
   }
 
-  const free = schedule[indices[hour]];
-  if (!free) return all_classrooms;
 
-  free.push(always_free);
+  const free = schedule[indices[hour]];
+  if (!free) return [...classroom_data["ALWAYS"], ...classroom_data[String(hour)]];
+
+  free.push([...classroom_data["ALWAYS"], ...classroom_data[String(hour)]]);
   free[3] = [...free[3], ...free[4]];
   free.pop();
 

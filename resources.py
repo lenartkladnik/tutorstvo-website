@@ -40,6 +40,28 @@ else:
 
 FORM_VALIDATION_OFF = secrets['FORM_VALIDATION_OFF'] == '1'
 
+classroom_data: dict = {}
+_classroom_data_fp = 'classrooms.txt'
+
+try:
+    with open(_classroom_data_fp) as f:
+        f.seek(0)
+        for i in f.readlines():
+            ln = i.strip().split(':', 1)
+
+            if len(ln) > 1:
+                classroom_data.update({ln[0]: ln[1].split(',') if ln[1] else []})
+
+except FileNotFoundError:
+    raise RuntimeError(f"Classrooms file '{_classroom_data_fp}' not found.")
+
+_all_cls_tmp = []
+for i in classroom_data:
+    j = classroom_data[i]
+    for k in j:
+        _all_cls_tmp.append(k)
+classroom_data.update({"ALL": list(filter(None, set(_all_cls_tmp)))})
+
 serializer = itsdangerous.URLSafeTimedSerializer(secrets['db'])
 
 def formatTitle(title: str) -> str:
@@ -85,9 +107,9 @@ def log(message: str, log_path: str, log_type: str = 'info'):
     with open(LOG_PATH, 'a') as f:
         f.write(log_string + '\n')
 
-def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None = None) -> bool:
+def validate_form_reason(form: Any, *checks: tuple[str, Callable], getter: str | None = None) -> tuple[bool, tuple[str, Any]] | tuple[bool]:
     if FORM_VALIDATION_OFF:
-        return True
+        return (True,)
 
     for name, func in checks:
         args = "undefined"
@@ -95,16 +117,20 @@ def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None =
             args = form[name] if getter == "[]" or not getter else form.get(name) if getter == "get" else form.getlist(name) if getter == "getlist" else None
             if not func(args):
                 log(f"Form validation failed on function: '{func.__name__}' with args: '{args}' ({name}).", "resources.validate_form")
-                return False
+                return (False, (name, args))
+
         except KeyError:
             log(f"Form validation failed on function: '{func.__name__}' because of missing args.", "resources.validate_form")
-            return False
+            return (False, (name, args))
 
         except Exception as e:
             log(f"Form validation failed on function: '{func.__name__}' with args: '{args}' ({name}) and exception: '{e}'.", "resources.validate_form")
-            return False
+            return (False, (name, args))
 
-    return True
+    return (True,)
+
+def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None = None) -> bool:
+    return validate_form_reason(form, *checks, getter=getter)[0]
 
 def debug_only(func):
     """
@@ -143,11 +169,10 @@ def get_leaderboard(User, Subject):
     return lb
 
 def get_free_for_date(date: datetime, schedule: list, hour):
-    all_classrooms = ["knj", "msv", "mpk", "mdž"]# ["m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj", "msv", "mpk", "mdž"]
-    always_free = ["knj", "msv", "mpk", "mdž"]
+    # ["knj", "m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj", "msv", "mpk", "mdž"]
 
-    if hour == "PRE" or hour == "O":
-        return all_classrooms
+    if hour == "PRE" or hour == "O" or hour == "PO":
+        return list(filter(None, classroom_data[hour] + classroom_data["ALWAYS"]))
 
     hour = int(hour)
 
@@ -176,18 +201,15 @@ def get_free_for_date(date: datetime, schedule: list, hour):
         if entry[0] == week_type and entry[1] == day_name:
             indices.append(i)
 
-    if hour >= len(indices):
-        return all_classrooms
-
     free = schedule[indices[hour]].copy()
     if not free:
-        return all_classrooms
+        return classroom_data["ALWAYS"] + classroom_data[str(hour)]
 
-    free.append(always_free)
+    free.append(classroom_data["ALWAYS"] + classroom_data[str(hour)])
     free[3] = [*free[3], *free[4]]
     free.pop()
 
-    return free[3]
+    return list(filter(None, free[3]))
 
 def parse_hour(time_str):
     periods = [

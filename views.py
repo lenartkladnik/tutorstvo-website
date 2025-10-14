@@ -5,7 +5,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, get_free_for_date, parse_hour, safe_redirect
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
 import random
@@ -109,8 +109,7 @@ def admin_required(func):
             log(f"Admin route accessed by {user.username} ({user.email}).", "views.admin_required")
             return func(*args, context=context, **kwargs)
 
-        flash("You must be an admin to access this page.", "danger")
-        return redirect(url_for('views.home'))
+        return render_template("404.html")
 
     return wrapper
 
@@ -130,8 +129,7 @@ def tutor_required(func):
         if current_user(context).is_admin() or current_user(context).is_tutor():
             return func(*args, context=context, **kwargs)
 
-        flash("You must be a tutor (or higher) to access this page.", "danger")
-        return redirect(url_for('views.home'))
+        return render_template("404.html")
 
     return wrapper
 
@@ -671,7 +669,7 @@ def tutorstvo(*, context):
     with open(FREE_CLASSROOMS_CSV, "r") as f:
         reader = csv.reader(f)
         for i in list(reader):
-            free_classrooms.append([i[0], i[1], i[2], i[3].split(',')])
+            free_classrooms.append([i[0], i[1], i[2], i[3].split(',') if i[3].strip() else []])
 
     free_classrooms = str(free_classrooms).replace("'", '"')
 
@@ -688,10 +686,12 @@ def tutorstvo(*, context):
 
         db.session.commit()
 
+    lesson_creation_error = None
+
     if request.form and (current_user(context).is_tutor()):
         form = request.form
 
-        if not validate_form(form,
+        validation_result = validate_form_reason(form,
                       ('min', lambda x: str(x).isdigit()),
                       ('max', lambda x: str(x).isdigit()),
                       ('group', lambda x: x in ALLOWED_GROUPS),
@@ -700,8 +700,11 @@ def tutorstvo(*, context):
                       ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
                       ('tutors', lambda x: (current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first())) and any([User.query.filter_by(username=y).first().is_tutor_for(Subject.query.filter_by(name=form['title']).first()) for y in x.split(', ')]) if x else True),
                       ('datetime', lambda x: (not any(i.subject.lower() == form['title'].lower() for i in Lesson.query.filter_by(datetime=x)))),
-                      ('tutors', lambda _: (not any(any(j.username in ([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', ')) for j in i.get_tutors()) for i in Lesson.query.filter_by(datetime=form['datetime']))))
-                            ):
+                      ('tutors', lambda _: (not any(any(j in ([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', ')) for j in i.get_tutors()) for i in Lesson.query.filter_by(datetime=form['datetime'])))),
+                      ('classroom', lambda x: (not any(i.classroom == x for i in Lesson.query.filter_by(datetime=form['datetime'])))),
+                        )
+
+        if not validation_result[0]:
             return redirect(safe_redirect(request.referrer))
 
         if int(form['min']) > int(form['max']):
@@ -815,7 +818,9 @@ def tutorstvo(*, context):
                            subject_db=Subject, user_db=User, days=days_,
                            startNext=startNext, rows=rows, enumerate=enumerate,
                            free_classrooms=free_classrooms,
-                           show_arrow=show_arrow, len=len, str=str, any=any)
+                           show_arrow=show_arrow, len=len, str=str, any=any,
+                           classroom_data=classroom_data,
+                           lesson_creation_error=lesson_creation_error)
 
 @views.route('/tutorstvo/add/<int:id>')
 @login_required
