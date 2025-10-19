@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from werkzeug.security import check_password_hash
 from forms import AdminForm
@@ -5,7 +6,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
 import random
@@ -45,7 +46,6 @@ BECOME_A_TUTOR_MESSAGES = [
     "Tutorstvo = korak k tvoji prihodnosti - Razvij vodstvene veščine, pridobi izkušnje in pomagaj sošolcem.",
     "Mali koraki, velike spremembe - Že z eno uro na teden lahko pomagaš nekomu do boljših ocen"
 ]
-ALLOWED_GROUPS = ['y1', 'y2', 'y3', 'y4']
 URL_REGEX = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
 def sendEmail(subject: str = '', recipients: list[str] | None = None, content: str = '', heading: str = ''):
@@ -665,11 +665,24 @@ def isInTimeRange(time: str, timeRange: tuple[str, str], format: str = "%H:%M") 
 @login_required
 def tutorstvo(*, context):
     side = [('PRE', '7:10', '7:55'), ('O', '10:25', '10:55'), ('6', '12:40', '13:25'), ('7', '13:30', '14:15'), ('8', '14:20', '15:05'), ('PO', '15:10', '23:59')]
+
     free_classrooms = []
-    with open(FREE_CLASSROOMS_CSV, "r") as f:
-        reader = csv.reader(f)
-        for i in list(reader):
-            free_classrooms.append([i[0], i[1], i[2], i[3].split(',') if i[3].strip() else []])
+    classroom_csv_placeholder = 'A,Ponedeljek,1,""\nA,Ponedeljek,2,""\nA,Ponedeljek,3,""\nA,Ponedeljek,4,""\nA,Ponedeljek,5,""\nA,Ponedeljek,6,""\nA,Ponedeljek,7,""\nA,Torek,1,""\nA,Torek,2,""\nA,Torek,3,""\nA,Torek,4,""\nA,Torek,5,""\nA,Torek,6,""\nA,Torek,7,""\nA,Sreda,1,""\nA,Sreda,2,""\nA,Sreda,3,""\nA,Sreda,4,""\nA,Sreda,5,""\nA,Sreda,6,""\nA,Sreda,7,""\nA,četrtek,1,""\nA,četrtek,2,""\nA,četrtek,3,""\nA,četrtek,4,""\nA,četrtek,5,""\nA,četrtek,6,""\nA,četrtek,7,""\nA,Petek,1,""\nA,Petek,2,""\nA,Petek,3,""\nA,Petek,4,""\nA,Petek,5,""\nA,Petek,6,""\nA,Petek,7,""\nB,Ponedeljek,1,""\nB,Ponedeljek,2,""\nB,Ponedeljek,3,""\nB,Ponedeljek,4,""\nB,Ponedeljek,5,""\nB,Ponedeljek,6,""\nB,Ponedeljek,7,""\nB,Torek,1,""\nB,Torek,2,""\nB,Torek,3,""\nB,Torek,4,""\nB,Torek,5,""\nB,Torek,6,""\nB,Torek,7,""\nB,Sreda,1,""\nB,Sreda,2,""\nB,Sreda,3,""\nB,Sreda,4,""\nB,Sreda,5,""\nB,Sreda,6,""\nB,Sreda,7,""\nB,četrtek,1,""\nB,četrtek,2,""\nB,četrtek,3,""\nB,četrtek,4,""\nB,četrtek,5,""\nB,četrtek,6,""\nB,četrtek,7,""\nB,Petek,1,""\nB,Petek,2,""\nB,Petek,3,""\nB,Petek,4,""\nB,Petek,5,""\nB,Petek,6,""\nB,Petek,7,""'
+
+    reader_list = []
+    for i in classroom_csv_placeholder.split('\n'):
+        reader_list.append(i.split(','))
+
+    if os.path.exists(FREE_CLASSROOMS_CSV):
+        with open(FREE_CLASSROOMS_CSV, "r") as f:
+            reader = csv.reader(f)
+
+            reader_list = []
+            for i in list(reader):
+                reader_list.append(i)
+
+    for i in reader_list:
+        free_classrooms.append([i[0], i[1], i[2], i[3].split(',') if i[3].strip() else []])
 
     free_classrooms = str(free_classrooms).replace("'", '"')
 
@@ -694,7 +707,7 @@ def tutorstvo(*, context):
         validation_result = validate_form_reason(form,
                       ('min', lambda x: str(x).isdigit()),
                       ('max', lambda x: str(x).isdigit()),
-                      ('group', lambda x: x in ALLOWED_GROUPS),
+                      ('groups', lambda x: not any([i not in current_user(context).tutoring_years() for i in x.split(',')]) and x),
                       ('title', lambda x: Subject.query.filter_by(name = x).first() != None),
                       ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.now() and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
                       ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
@@ -711,7 +724,7 @@ def tutorstvo(*, context):
             return redirect(safe_redirect(request.referrer))
 
         new_lesson = Lesson(
-            groups=form['group'],
+            groups=form['groups'],
             subject=form['title'],
             classroom=form['classroom'],
             min=form['min'],
@@ -727,7 +740,7 @@ def tutorstvo(*, context):
     search = request.args.get('search', None)
 
     lessons = Lesson.query.filter(Lesson.id.notin_(current_user(context).getSelectedSubjects()))
-    mask = list(map(lambda lesson: any(map(lambda x: x in current_user(context).get_groups(), lesson.get_groups())), lessons))
+    mask = list(map(lambda lesson: any(map(lambda x: x in current_user(context).get_groups() or current_user(context).username in lesson.get_tutors(), lesson.get_groups())), lessons))
     lessons = [d for d, m in zip(lessons, mask) if m]
 
     user_agent = request.headers.get('User-Agent', '').lower()
@@ -811,6 +824,11 @@ def tutorstvo(*, context):
 
         all_tutors.update({subject.name: c_tutors})
 
+    if FORM_VALIDATION_OFF:
+        has_passed = lambda _: False
+    else:
+        has_passed = lambda date: datetime.strptime(date.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1)
+
     return render_template('tutorstvo.html',
                            current_user=current_user(context), mobile=mobile,
                            search=search, lessons=lessons, subjects=subjects,
@@ -820,7 +838,9 @@ def tutorstvo(*, context):
                            free_classrooms=free_classrooms,
                            show_arrow=show_arrow, len=len, str=str, any=any,
                            classroom_data=classroom_data,
-                           lesson_creation_error=lesson_creation_error)
+                           lesson_creation_error=lesson_creation_error,
+                           human_readable_groups=HUMAN_READABLE_GROUPS,
+                           has_passed=has_passed)
 
 @views.route('/tutorstvo/add/<int:id>')
 @login_required

@@ -132,7 +132,9 @@
 
                 {% if current_user.is_tutor() %}
                 {% for _ in range(max_len - len(row_lessons) + 1) %}
+                {% if not has_passed(tracker.date) %}
                 <a href="#" class="add-subject" data-date="{{ tracker.date }}"></a>
+                {% endif %}
                 {% endfor %}
                 {% endif %}
             </th>
@@ -145,8 +147,9 @@
 {% if current_user.is_tutor() %}
 {% if lesson_creation_error %}
 <div class="popup" style="visibility: visible;">
-    <span>{% lesson_creation_error %}</span>
+    <span>{{ lesson_creation_error }}</span>
 </div>
+{% endif %}
 <form method="POST" id="subject-form">
     <div class="add-subject-form" data-frcls="{{ free_classrooms }}" data-clsrdata="{{ classroom_data }}">
         <div class="subject-box-grid">
@@ -174,12 +177,13 @@
 
         <textarea class="description" name="description" rows="3" cols="160" maxlength="60" style="resize: none;" placeholder="Opis" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         <p class="counter"><span id="description-char-count">0</span>/60</p>
-        <a class="dropdown-arrow" id="tutors-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi ostale tutorje  ';" onclick="toggleVisibilityById('tutors-select-top'); this.classList.toggle('open');"></a>
+        <a class="dropdown-arrow" id="tutors-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi ostale tutorje  ';" onclick="toggleVisibilityById('tutors-select-top'); toggleVisibilityByClassName('lesson-form-bottom-button'); this.classList.toggle('open'); updateTutorsSelect();"></a>
         <div class="tutors-select" id="tutors-select-top" style="visibility: hidden;">
             <div id="tutor-container">
                 <input type="hidden" id="selected-tutors" name="tutors"></input>
                 <div id="tutors-select-container"></div>
                 <script>
+                function updateTutorsSelect() {
                     function setTutorAddOptions() {
                         var subject = document.getElementById('subject-selector').value;
                         var tutors_select = document.getElementById('tutors-select-container');
@@ -227,6 +231,7 @@
                     document.querySelectorAll('#tutors-select-container input[type="checkbox"]').forEach(checkbox => {
                         checkbox.addEventListener('change', updateSelectedTutors);
                     });
+                    updateSelectedTutors();
 
                     document.addEventListener('click', function(e) {
                         let tutors_select_top = document.getElementById('tutors-select-top');
@@ -234,25 +239,100 @@
 
                         if (!tutors_select_top.contains(e.target) && !dropdown_arrow.contains(e.target) && dropdown_arrow.classList.contains('open')) {
                             toggleVisibilityById('tutors-select-top');
+                            toggleVisibilityByClassName('lesson-form-bottom-button');
                             dropdown_arrow.classList.toggle('open');
                         }
                     });
+                }
+                updateTutorsSelect();
+                </script>
+            </div>
+        </div>
+
+        <a class="dropdown-arrow" id="years-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi letnike  ';" onclick="toggleVisibilityById('years-select-top'); toggleVisibilityByClassName('lesson-form-bottom-button'); this.classList.toggle('open'); updateYearsSelect();"></a>
+        <div class="years-select" id="years-select-top" style="visibility: hidden;">
+            <div id="years-container">
+                <input type="hidden" id="selected-years" name="groups"></input>
+                <div id="years-select-container"></div>
+                <script>
+                function updateYearsSelect() {
+                    const human_years = {{ human_readable_groups | safe }};
+                    const human_years_reversed = {};
+                    for (const [key, value] of Object.entries(human_years)) {
+                        human_years_reversed[value] = key;
+                    }
+
+                    function setYearsAddOptions() {
+                        var years_select = document.getElementById('years-select-container');
+                        var years = {{ current_user.tutoring_years() | safe }};
+
+                        years_select.innerHTML = '';
+
+                        for (let i = 0; i < years.length; i++) {
+                            let container = document.createElement('div');
+                            container.classList.add('years-select-sub-container');
+
+                            let checkbox = document.createElement('input');
+                            checkbox.type = "checkbox";
+
+                            if (years[i] == "{{ current_user.get_year() }}") {
+                                checkbox.checked = true;
+                            }
+
+                            let id = `years-select-option-${i}`;
+                            checkbox.id = id;
+
+                            container.appendChild(checkbox);
+
+                            let label = document.createElement('label');
+                            label.setAttribute('for', id);
+                            label.setAttribute('data-value', years[i]);
+                            label.textContent = human_years[`${years[i]}`];
+
+                            container.appendChild(label);
+
+                            years_select.appendChild(container);
+                        }
+                    }
+
+                    setYearsAddOptions();
+
+                    function updateSelectedYears() {
+                        const checkboxes = document.querySelectorAll('#years-select-container input[type="checkbox"]:checked');
+                        const values = Array.from(checkboxes).map(cb => human_years_reversed[`${cb.parentElement.textContent.trim()}`]);
+                        document.getElementById('selected-years').value = values.join(',');
+                    }
+
+                    document.querySelectorAll('#years-select-container input[type="checkbox"]').forEach(checkbox => {
+                        checkbox.addEventListener('change', updateSelectedYears);
+                    });
+                    updateSelectedYears();
+
+                    document.addEventListener('click', function(e) {
+                        let years_select_top = document.getElementById('years-select-top');
+                        let dropdown_arrow = document.getElementById('years-select-dropdown-arrow');
+
+                        if (!years_select_top.contains(e.target) && !dropdown_arrow.contains(e.target) && dropdown_arrow.classList.contains('open')) {
+                            toggleVisibilityById('years-select-top');
+                            toggleVisibilityByClassName('lesson-form-bottom-button');
+                            dropdown_arrow.classList.toggle('open');
+                        }
+                    });
+                }
+                updateYearsSelect();
                 </script>
             </div>
         </div>
 
         <div style="display: flex; justify-content: space-between;">
-            <div class="submit-form">
-                <input class="subject-form-button" type="submit" value="Shrani" />
+            <div class="submit-form lesson-form-bottom-button">
+                <input class="subject-form-button lesson-form-bottom-button" type="submit" value="Shrani" />
             </div>
-            <div class="submit-form">
-                <a href="#" class="subject-form-button close-add-subject">
-                    <input class="subject-form-button subject-form-button-decline" type="button" value="Prekliči" />
+            <div class="submit-form lesson-form-bottom-button">
+                <a href="#" class="subject-form-button close-add-subject lesson-form-bottom-button" onclick="setYearsAddOptions();">
+                    <input class="subject-form-button subject-form-button-decline lesson-form-bottom-button" type="button" value="Prekliči" />
                 </a>
             </div>
-
-            <input type="hidden" name="group" value="{{ current_user.get_year() }}" />
-
         </div>
     </div>
 </form>

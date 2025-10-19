@@ -1,6 +1,5 @@
-from ast import expr_context
 from extensions import db
-from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_USER, is_lesson_removable
+from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_USER, is_lesson_removable, ALLOWED_GROUPS, HUMAN_READABLE_GROUPS
 from datetime import datetime, timedelta
 
 class Subject(db.Model):
@@ -81,9 +80,19 @@ class User(db.Model):
         return groups_str.split(',')
 
     def get_year(self) -> str:
-        r = list(filter(lambda g: g in ["y1", "y2", "y3", "y4"], self.get_groups()))
+        r = list(filter(lambda g: g in ALLOWED_GROUPS, self.get_groups()))
 
         return r[0] if r else ''
+
+    def tutoring_years(self) -> list[str]:
+        years = []
+
+        for y in ALLOWED_GROUPS:
+            years.append(y)
+            if self.get_year() == y:
+                break
+
+        return years
 
     def is_admin(self):
         return self.role == 'admin'
@@ -113,6 +122,9 @@ class User(db.Model):
 
     def getSelectedSubjects(self):
         return list((filter(None, self.selected_subjects.split(','))))
+
+    def getSelectedSubjectsInt(self):
+        return list(map(int, self.getSelectedSubjects()))
 
     def getLeaderBoardPos(self):
         if not self.is_tutor():
@@ -151,6 +163,19 @@ class Lesson(db.Model):
         groups_str = self.groups
 
         return groups_str.split(',')
+
+    def human_readable_groups(self) -> str:
+        # return ', '.join([HUMAN_READABLE_GROUPS[i] for i in self.get_groups()])
+
+        string_list = []
+
+        for y in self.get_groups():
+            string_list.append(y[1] + '.')
+
+        string = ', '.join(string_list)
+        string += ' letnik'
+
+        return string
 
     def isInGroup(self, group: str) -> bool:
         return group in self.get_groups()

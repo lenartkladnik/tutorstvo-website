@@ -2,7 +2,9 @@
 <div class="subject-box-grid" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">
     <div style="display: flex;">
         <span class="title">{{ lesson.subject }}</span>
+        {% if (not gray_subject_box) or lesson.id in current_user.getSelectedSubjectsInt() or current_user.username in lesson.get_tutors() %}
         <span class="classroom">{{ lesson.classroom }}</span>
+        {% endif %}
     </div>
 
     <div style="display: float;">
@@ -18,3 +20,4 @@
     {{ lesson.description }}
 </span>
 <span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">{{ lesson.tutors }}</span>
+<span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">{{ lesson.human_readable_groups() }}</span>

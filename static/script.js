@@ -627,6 +627,19 @@ function toggleVisibilityById(id) {
     }
 }
 
+function toggleVisibilityByClassName(class_name) {
+    const elements = document.getElementsByClassName(class_name);
+    for (var i = 0; i < elements.length; i++) {
+        let element = elements[i];
+        if (element.style.visibility == 'hidden') {
+            showElement(element);
+        }
+        else {
+            hideElement(element);
+        }
+    }
+}
+
 function showElementById(id) {
     const element = document.getElementById(id);
     showElement(element);

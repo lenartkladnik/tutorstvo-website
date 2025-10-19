@@ -682,9 +682,17 @@ li:has(> .sidebar-selected) {
     color: var(--description-color);
     font-size: 16px;
     padding: 10px 10px;
-    height: calc(100% - 50px);
-    text-align: justify;
+
+    min-height: 38px;
     width: calc(320px - 20px);
+
+    text-align: justify;
+    overflow-wrap: anywhere;
+}
+
+.lesson-form-bottom-button {
+    position: relative;
+    top: 25px;
 }
 
 .tutors {
@@ -692,6 +700,8 @@ li:has(> .sidebar-selected) {
 
     font-size: 16px;
     padding-left: 10px;
+
+    transform: translateY(-11px);
 }
 
 .tutors-select {
@@ -754,6 +764,46 @@ li:has(> .sidebar-selected) {
 
 .dropdown-arrow::after { content: var(--dropdown-arrow-prefix) '∨'; }
 .dropdown-arrow.open::after { content: var(--dropdown-arrow-prefix) '∧'; }
+
+#years-select-dropdown-arrow {
+    left: 150px;
+}
+
+.years-select {
+    font-size: 8pt;
+    width: fit-content;
+    transform: translate(5px, 139px);
+    position: absolute;
+}
+
+#years-select-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+
+    background-color: var(--subject-box-bg);
+    border: solid 1.5px var(--subject-box-border);
+    border-radius: 10px;
+
+    padding: 20px;
+    position: relative;
+    left: -5px;
+    top: 14px;
+
+    min-width: 279px;
+    min-height: 10px;
+}
+
+.years-select-sub-container {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    width: fit-content;
+}
+
+.years-select-sub-container label {
+    flex-shrink: 0;
+}
 
 .add-subject-box {
     display: grid;
