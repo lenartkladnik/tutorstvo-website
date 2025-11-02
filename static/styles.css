@@ -826,13 +826,18 @@ li:has(> .sidebar-selected) {
     height: 100%;
 }
 
-.subject-box-grid input:not(.description, .title) {
+.subject-box-grid input {
+    all: unset;
+}
+
+.request-lesson-box-grid input:not(.description, .title) {
     all: unset;
 }
 
 input.description {
     background-color: transparent;
     border: none;
+    padding: 4px;
 }
 
 .add-subject-form textarea {
@@ -1808,6 +1813,32 @@ input.description {
     border-style: none solid solid;
     border-bottom-left-radius: 10px;
     border-bottom-right-radius: 10px;
+
+    min-height: 8px;
+    height: fit-content;
+}
+
+.request-lesson-button {
+    all: unset;
+    position: absolute;
+
+    width: fit-content;
+    height: 24px;
+    left: 266px;
+    top: 165px;
+
+    float: left;
+    cursor: pointer;
+
+    border-radius: 8px;
+    border-color: hsl(0, 0%, 61%);
+    border-width: 1px;
+    border-style: solid;
+
+    background-color: var(--subject-box-bg);
+    color: var(--text-color) !important;
+
+    padding: 4px;
 }
 
 @media only screen and (max-width: 600px) {

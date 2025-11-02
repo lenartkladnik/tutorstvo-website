@@ -1,9 +1,9 @@
 from extensions import db
 from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_USER, is_lesson_removable, ALLOWED_GROUPS, HUMAN_READABLE_GROUPS
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta, timezone
 
 class Subject(db.Model):
-    __bind_key__ = 'subjects'
+    __tablename__ = 'subjects'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False, unique=True)
@@ -17,7 +17,7 @@ class Subject(db.Model):
         return list(filter(None, self.learning_resources.split(',')))
 
 class User(db.Model):
-    __bind_key__ = 'users'
+    __tablename__ = 'users'
 
     id = db.Column(db.Integer, primary_key=True)
     groups = db.Column(db.String(200), default='', nullable=True)
@@ -136,7 +136,7 @@ class User(db.Model):
                 return i[1]
 
 class Lesson(db.Model):
-    __bind_key__ = 'lessons'
+    __tablename__ = 'lessons'
 
     id = db.Column(db.Integer, primary_key=True)
     groups = db.Column(db.String(200), default='', nullable=False)
@@ -192,7 +192,43 @@ class Lesson(db.Model):
         return users
 
 class Group(db.Model):
-    __bind_key__ = 'groups'
+    __tablename__ = 'groups'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False, unique=True)
+
+class LessonRequest(db.Model):
+    __tablename__ = 'lesson_requests'
+
+    id = db.Column(db.Integer, primary_key=True)
+    subject = db.Column(db.String(50), nullable=False, unique=True)
+
+    comments = db.relationship("Comment", back_populates="lesson_request", cascade="all, delete-orphan")
+
+    def exists_user_entry(self, username: str) -> bool:
+        for comment in self.comments:
+            if comment.by == username:
+                return True
+
+        return False
+
+    def count(self) -> int:
+        return len(self.comments)
+
+class Comment(db.Model):
+    __tablename__ = 'comments'
+
+    id = db.Column(db.Integer, primary_key=True)
+    lesson_request_id = db.Column(db.Integer, db.ForeignKey('lesson_requests.id', ondelete="CASCADE"), nullable=False)
+    content = db.Column(db.String(35), nullable=False)
+    by = db.Column(db.String(50), nullable=False)
+    created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    lesson_request = db.relationship("LessonRequest", back_populates="comments")
+
+    def passed(self):
+        created_at = self.created_at
+        if created_at.tzinfo is None: # Replace naive entries
+            created_at = created_at.replace(tzinfo=timezone.utc)
+
+        return created_at < datetime.now(timezone.utc) - timedelta(days=7)

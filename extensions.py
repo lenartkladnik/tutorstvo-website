@@ -3,6 +3,7 @@ from flask import Flask
 from flask_mail import Mail
 from flask_caching import Cache
 from identity.flask import Auth
+from flask_migrate import Migrate
 import app_config
 from resources import log
 
@@ -17,9 +18,9 @@ mail = Mail(app)
 db = SQLAlchemy(app)
 cache = Cache(app)
 
-from models import User, Subject, Lesson, Group # Needed because of db creation ->
-                                                # SQLAlchemy won't create the db
-                                                # tables if they aren't imported
+from models import User, Subject, Lesson, Group, LessonRequest # Needed because of db creation ->
+                                                               # SQLAlchemy won't create the db
+                                                               # tables if they aren't imported
 
 with app.app_context():
     db.create_all()
@@ -31,6 +32,8 @@ auth = Auth(
     client_credential=app.config["CLIENT_SECRET"],
     redirect_uri=app.config["REDIRECT_URI"]
 )
+
+migrate = Migrate(app, db)
 
 BASE_SUBJECTS = ["Matematika", "Slovenščina", "Zgodovina", "Psihologija", "Angleščina", "Sociologija", "Španščina", "Nemščina", "Francoščina", "Kemija", "Fizika", "Biologija", "Geografija", "Glasba", "Likovna", "Drugo"]
 

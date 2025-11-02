@@ -3,25 +3,27 @@
 {% block content %}
 <div class="main">
     <span class="request-lesson-text">USTVARI PROŠNJO</span>
-    <div class="subject-box request-lesson-box">
-        <div class="subject-box-grid">
-            <div style="display: flex;">
-                <input type="text" list="subjectList" placeholder="Predmet" class="title" required />
+    <form class="subject-box request-lesson-box" action="/request-lesson" method="POST" autocomplete="off">
+        <div class="subject-box-grid request-lesson-box-grid">
+            <div style="display: flex; height: 0;">
+                <input name="subject" type="text" list="subjectList" placeholder="Predmet" class="title" required />
                 <datalist id="subjectList">
                     {% for subject in subjects %}
+                    {% if lesson_request_db.query.filter_by(subject=subject.name).first() %}
+                    {% if not lesson_request_db.query.filter_by(subject=subject.name).first().exists_user_entry(current_user.username) %}
                     <option value="{{ subject.name }}">{{ subject.name.capitalize() }}</option>
+                    {% endif %}
+                    {% else %}
+                    <option value="{{ subject.name }}">{{ subject.name.capitalize() }}</option>
+                    {% endif %}
                     {% endfor %}
                 <datalist>
             </div>
 
-            <input type="text" class="description" maxlength="60" placeholder="Snov, komentarji, ipd." />
-
-            <div style="display: float;">
-                <span class="icon-right" style="float: right; scale: 1.2;">13</span>
-                <img src="{{ url_for('static', filename='person.svg') }}" class="icon-right" style="float: right; scale: 1.2;">
-            </div>
+            <input name="comment" type="text" class="description" maxlength="34" placeholder="Snov, komentarji, ipd." />
         </div>
-    </div>
+        <input type="submit" value="Potrdi" class="request-lesson-button" />
+    </form>
     <div class="request-lesson-side-grid">
         <script>
             function topById(id) {
@@ -52,18 +54,20 @@
                 }
             }
         </script>
-        {% for subject in subjects %}
-        <div id="{{ subject.name }}-lesson-main" class="subject-box request-lesson-side-box" onclick="toggleLessonPreview('{{ subject.name }}');">
-            <span class="title">{{ subject.name }}</span>
+        {% for lesson_request in lesson_request_db.query.all() %}
+        <div id="{{ lesson_request.subject }}-lesson-main" class="subject-box request-lesson-side-box" onclick="toggleLessonPreview('{{ lesson_request.subject }}');">
+            <span class="title">{{ lesson_request.subject }}</span>
             <div style="display: float;">
-                <span class="icon-right" style="float: right; scale: 1.2;">13</span>
+                <span class="icon-right" style="float: right; scale: 1.2;">{{ lesson_request.count() }}</span>
                 <img src="{{ url_for('static', filename='person.svg') }}" class="icon-right" style="float: right; scale: 1.2;">
             </div>
-            <div id="{{ subject.name }}-lesson-data" class="request-lesson-data" style="visibility: hidden;">
-                <span>&bull; Snov</span>
+            <div id="{{ lesson_request.subject }}-lesson-data" class="request-lesson-data" style="visibility: hidden;">
+                {% for comment in lesson_request.comments %}
+                {% if comment.content.strip() %}
+                <span>&bull; {{ comment.content.strip() }}</span>
                 <br>
-                <span>&bull; Komentarji</span>
-                <br>
+                {% endif %}
+                {% endfor %}
             </div>
         </div>
     {% endfor %}

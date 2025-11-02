@@ -14,12 +14,12 @@ MAIL_USE_TLS = True
 MAIL_USERNAME = secrets['mail-username']
 MAIL_PASSWORD = secrets['mail-password']
 
-SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db'
+SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db?timeout=30'
 SQLALCHEMY_BINDS = {
-    'users': 'sqlite:///users.db',
-    'subjects': 'sqlite:///subjects.db',
-    'lessons': 'sqlite:///lessons.db',
-    'groups': 'sqlite:///groups.db'
+    'users': 'sqlite:///users.db?timeout=30',
+    'subjects': 'sqlite:///subjects.db?timeout=30',
+    'lessons': 'sqlite:///lessons.db?timeout=30',
+    'groups': 'sqlite:///groups.db?timeout=30'
 }
 
 CACHE_TYPE = 'redis'

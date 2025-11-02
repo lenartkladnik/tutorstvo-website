@@ -269,6 +269,7 @@ for (let i = 0; i < add_subject.length; i++){
         element.style.display = "grid";
         element.style.visibility = "visible";
 
+        console.log(element.dataset.frcls);
         const free_cls = JSON.parse(element.dataset.frcls);
 
         const cls_opts = getFreeForDate(parseDate(this.dataset.date), free_cls, parseHour(this.dataset.date));

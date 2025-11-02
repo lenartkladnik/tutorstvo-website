@@ -42,19 +42,19 @@ RUN --mount=type=cache,target=/root/.cache/pip \
 
 # Create directories that the app can write to
 RUN mkdir logs
-RUN chown -R appuser:appuser logs
+# RUN chown -R appuser:appuser logs
 
 RUN mkdir flask_session
-RUN chown -R appuser:appuser flask_session
+# RUN chown -R appuser:appuser flask_session
 
 RUN mkdir -p instance
-RUN chown -R appuser:appuser instance
-
-# Switch to the non-privileged user to run the application.
-# USER appuser
+# RUN chown -R appuser:appuser instance
 
 # Expose the port that the application listens on.
 EXPOSE 5000
 
-# Run the application.
-CMD python3 app.py
+# Set an entrypoint
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

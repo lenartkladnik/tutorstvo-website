@@ -5,7 +5,7 @@ from forms import AdminForm
 from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
-from models import User, Subject, Lesson, Group
+from models import Comment, LessonRequest, User, Subject, Lesson, Group
 from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
@@ -682,7 +682,7 @@ def tutorstvo(*, context):
                 reader_list.append(i)
 
     for i in reader_list:
-        free_classrooms.append([i[0], i[1], i[2], i[3].split(',') if i[3].strip() else []])
+        free_classrooms.append([i[0], i[1], i[2], i[3].split(',') if i[3].strip() and i[3].strip() != '""' else []])
 
     free_classrooms = str(free_classrooms).replace("'", '"')
 
@@ -1029,7 +1029,33 @@ def new_issue(*, context):
 
     return redirect(safe_redirect(request.referrer))
 
-@views.route('/request-lesson')
+@views.route('/request-lesson', methods=["GET", "POST"])
 @login_required
 def request_lesson(*, context):
-    return render_template('request_lesson.html', current_user=current_user(context), subjects=Subject.query.all())
+    if request.form and validate_form(request.form,
+                         ('subject', lambda x: Subject.query.filter_by(name=x).first() != None),
+                         ('comment', lambda x: len(x) <= 34),
+        ):
+        if not LessonRequest.query.filter_by(subject=request.form["subject"]).first():
+            db.session.add(LessonRequest(subject=request.form['subject']))
+            db.session.commit()
+
+        if not LessonRequest.query.filter_by(subject=request.form["subject"]).first().exists_user_entry(current_user(context).username):
+            lesson_request = LessonRequest.query.filter_by(subject=request.form['subject']).first()
+            new_comment = Comment(
+                content=request.form['comment'],
+                lesson_request=lesson_request,
+                by=current_user(context).username
+            )
+
+            db.session.add(new_comment)
+            db.session.commit()
+
+    for lesson_request in LessonRequest.query.all():
+        for comment in lesson_request.comments:
+            if comment.passed():
+                db.session.delete(comment)
+
+    db.session.commit()
+
+    return render_template('request_lesson.html', current_user=current_user(context), subjects=Subject.query.all(), lesson_request_db=LessonRequest)
