@@ -1028,3 +1028,8 @@ def new_issue(*, context):
         db.session.commit()
 
     return redirect(safe_redirect(request.referrer))
+
+@views.route('/request-lesson')
+@login_required
+def request_lesson(*, context):
+    return render_template('request_lesson.html', current_user=current_user(context), subjects=Subject.query.all())

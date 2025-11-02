@@ -4,11 +4,11 @@ SECRET_KEY = secrets['db']
 AUTHORITY = f"https://login.microsoftonline.com/{secrets['tenant_id']}"
 CLIENT_ID = secrets['client_id']
 CLIENT_SECRET = secrets['client_secret']
-REDIRECT_URI = "http://localhost:5000/getAToken"
+REDIRECT_URI = secrets['redirect_uri']
 SESSION_TYPE = "filesystem"
 
-MAIL_ADDRESS = 'tutorstvo@kladnik.cc'
-MAIL_SERVER = 'smtp-relay.brevo.com'
+MAIL_ADDRESS = secrets['mail-address']
+MAIL_SERVER = secrets['mail-server']
 MAIL_PORT = 587
 MAIL_USE_TLS = True
 MAIL_USERNAME = secrets['mail-username']

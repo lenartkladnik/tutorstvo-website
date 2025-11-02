@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main">
+    <span class="request-lesson-text">USTVARI PROŠNJO</span>
+    <div class="subject-box request-lesson-box">
+        <div class="subject-box-grid">
+            <div style="display: flex;">
+                <input type="text" list="subjectList" placeholder="Predmet" class="title" required />
+                <datalist id="subjectList">
+                    {% for subject in subjects %}
+                    <option value="{{ subject.name }}">{{ subject.name.capitalize() }}</option>
+                    {% endfor %}
+                <datalist>
+            </div>
+
+            <input type="text" class="description" maxlength="60" placeholder="Snov, komentarji, ipd." />
+
+            <div style="display: float;">
+                <span class="icon-right" style="float: right; scale: 1.2;">13</span>
+                <img src="{{ url_for('static', filename='person.svg') }}" class="icon-right" style="float: right; scale: 1.2;">
+            </div>
+        </div>
+    </div>
+    <div class="request-lesson-side-grid">
+        <script>
+            function topById(id) {
+                document.getElementById(id).style.zIndex = "1";
+            }
+
+            function bottomByClassName(class_name) {
+                for (const el of document.getElementsByClassName(class_name)) {
+                    el.style.zIndex = "0";
+                }
+            }
+
+            function toggleLessonPreview(subject_name) {
+                const lesson_data = `${subject_name}-lesson-data`;
+                const lesson_main = `${subject_name}-lesson-main`;
+
+                var visible = false;
+                if (document.getElementById(lesson_data).style.visibility == "visible") {
+                    visible = true;
+                }
+
+                hideElementsByClassName('request-lesson-data');
+
+                if (!visible) {
+                    showElementById(lesson_data);
+                    bottomByClassName('request-lesson-side-box');
+                    topById(lesson_main);
+                }
+            }
+        </script>
+        {% for subject in subjects %}
+        <div id="{{ subject.name }}-lesson-main" class="subject-box request-lesson-side-box" onclick="toggleLessonPreview('{{ subject.name }}');">
+            <span class="title">{{ subject.name }}</span>
+            <div style="display: float;">
+                <span class="icon-right" style="float: right; scale: 1.2;">13</span>
+                <img src="{{ url_for('static', filename='person.svg') }}" class="icon-right" style="float: right; scale: 1.2;">
+            </div>
+            <div id="{{ subject.name }}-lesson-data" class="request-lesson-data" style="visibility: hidden;">
+                <span>&bull; Snov</span>
+                <br>
+                <span>&bull; Komentarji</span>
+                <br>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+</div>
+{% endblock %}

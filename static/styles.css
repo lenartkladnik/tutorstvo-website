@@ -826,8 +826,13 @@ li:has(> .sidebar-selected) {
     height: 100%;
 }
 
-.subject-box-grid input {
+.subject-box-grid input:not(.description, .title) {
     all: unset;
+}
+
+input.description {
+    background-color: transparent;
+    border: none;
 }
 
 .add-subject-form textarea {
@@ -1728,6 +1733,81 @@ li:has(> .sidebar-selected) {
     left: 304px;
     filter: opacity(40%) invert(var(--invert)) !important;
     cursor: help;
+}
+
+.request-lesson-box {
+    --scale: 2;
+    scale: var(--scale);
+    top: calc(160px * var(--scale) / 4 + 20px);
+    left: calc(var(--scale) * 5%);
+}
+
+.request-lesson-side-box {
+    height: 50px;
+    scale: 1.7;
+    cursor: pointer;
+}
+
+.request-lesson-side-box .title {
+    position: relative;
+
+    top: 14px;
+    left: 5px;
+
+    user-select: none;
+}
+
+.request-lesson-side-box .icon-right {
+    position: relative;
+
+    top: -10px;
+    left: -5px;
+
+    user-select: none;
+}
+
+.request-lesson-side-box img.icon-right {
+    scale: 0.95 !important;
+    top: -12px;
+
+    user-select: none;
+}
+
+.request-lesson-side-grid {
+    position: relative;
+
+    display: grid;
+    grid-template-columns: repeat(2, 560px);
+
+    left: 42vw;
+    top: -132px;
+    gap: 40px;
+}
+
+.request-lesson-text {
+    position: relative;
+
+    font-size: 48px;
+    color: var(--text-color);
+
+    margin: 20px;
+    left: 80px;
+}
+
+.request-lesson-data {
+    border-color: var(--subject-box-border);
+    color: var(--text-color);
+    background-color: var(--subject-box-bg);
+
+    position: relative;
+    width: 100%;
+    left: -2px;
+    top: -2px !important;
+
+    border-width: 2px;
+    border-style: none solid solid;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
 }
 
 @media only screen and (max-width: 600px) {

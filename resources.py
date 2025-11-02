@@ -29,7 +29,7 @@ try:
             ln = i.strip().split(':', 1)
 
             if len(ln) > 1:
-                secrets.update({ln[0]: ln[1]})
+                secrets.update({ln[0]: ln[1].split('#')[0]})
 
 except FileNotFoundError:
     raise RuntimeError(f"Settings file '{_secrets_fp}' not found.")
