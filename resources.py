@@ -3,7 +3,7 @@ import itsdangerous
 from datetime import datetime
 import os
 from functools import wraps
-from flask import abort, url_for
+from flask import abort, url_for, Request
 import math
 from urllib.parse import urlparse
 
@@ -244,3 +244,10 @@ def is_lesson_removable(lesson):
         return False
 
     return True
+
+def is_mobile(request: Request):
+    user_agent = request.headers.get('User-Agent', '').lower()
+    if any(mobile in user_agent for mobile in ['iphone', 'android', 'ipad', 'mobile']):
+        return True
+
+    return False

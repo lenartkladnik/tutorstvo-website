@@ -252,8 +252,6 @@ function applyDateSelector() {
 
           let fullDatetime = `${currentYear}/${day}/${month} ${hours}:${minutes}`;
           document.getElementById("fullDatetime").value = fullDatetime;
-
-          console.log("Full Datetime:", fullDatetime);
         }
       }
     });
@@ -269,7 +267,6 @@ for (let i = 0; i < add_subject.length; i++){
         element.style.display = "grid";
         element.style.visibility = "visible";
 
-        console.log(element.dataset.frcls);
         const free_cls = JSON.parse(element.dataset.frcls);
 
         const cls_opts = getFreeForDate(parseDate(this.dataset.date), free_cls, parseHour(this.dataset.date));
@@ -329,8 +326,6 @@ for (let i = 0; i < add_subject.length; i++){
 
         //      let fullDatetime = `${currentYear}/${day}/${month} ${hours}:${minutes}`;
         //      document.getElementById("fullDatetime").value = fullDatetime;
-
-        //      console.log("Full Datetime:", fullDatetime);
         //    }
         //  }
         //});
@@ -680,7 +675,7 @@ let touchstartX = new Map()
 let touchendX = new Map()
 
 function checkDirection(element, func) {
-  if (Math.abs(touchstartX.get(getMapKeyFromElFu(element, func)) - touchendX.get(getMapKeyFromElFu(element, func))) > 200) {
+  if (Math.abs(touchstartX.get(getMapKeyFromElFu(element, func)) - touchendX.get(getMapKeyFromElFu(element, func))) > 100) {
     if (touchendX.get(getMapKeyFromElFu(element, func)) < touchstartX.get(getMapKeyFromElFu(element, func))) func('left');
     if (touchendX.get(getMapKeyFromElFu(element, func)) > touchstartX.get(getMapKeyFromElFu(element, func))) func('right');
   }

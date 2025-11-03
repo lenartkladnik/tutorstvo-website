@@ -1965,11 +1965,11 @@ input.description {
         grid-template-columns: repeat(1, 1fr);
         width: calc(100vw - 100px);
     }
-    
+
     .account-field .button:hover {
         transform: translateX(0px) scale(1.05);
     }
-    
+
     .account-field .value {
         all: unset;
         text-align: center;
@@ -2019,5 +2019,24 @@ input.description {
     .subject-form-button-decline {
         position: relative;
         top: 0;
+    }
+
+    .request-lesson-box {
+        --scale: 1;
+    }
+
+    .request-lesson-text {
+        font-size: 28px;
+        left: 20px;
+    }
+
+    .request-lesson-side-grid {
+        left: 18px;
+        top: 100px;
+        gap: 4px;
+    }
+
+    .request-lesson-side-box {
+        scale: 1;
     }
 }

@@ -6,7 +6,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, is_mobile, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
 import random
@@ -743,10 +743,7 @@ def tutorstvo(*, context):
     mask = list(map(lambda lesson: any(map(lambda x: x in current_user(context).get_groups() or current_user(context).username in lesson.get_tutors(), lesson.get_groups())), lessons))
     lessons = [d for d, m in zip(lessons, mask) if m]
 
-    user_agent = request.headers.get('User-Agent', '').lower()
-    mobile = False
-    if any(mobile in user_agent for mobile in ['iphone', 'android', 'ipad', 'mobile']):
-        mobile = True
+    mobile = is_mobile(request)
 
     startDate = request.args.get('date')
     if (startDate != '' and startDate) and not mobile:
@@ -986,7 +983,11 @@ def select_group(*, context):
 @login_required
 def leaderboard(*, context):
     lb = get_leaderboard(User, Subject)
-    max_w = 600 - 1
+    if not is_mobile(request):
+        max_w = 600 - 1
+
+    else:
+        max_w = 50 - 1
 
     return render_template('leaderboard.html', current_user=current_user(context), lb=lb, max_w=max_w)
 
