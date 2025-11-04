@@ -2,6 +2,6 @@ ALWAYS:msv,mpk,mdž
 PRE:
 O:
 6:
-7:knj
+7:
 8:
 PO:dsp
