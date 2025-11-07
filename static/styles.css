@@ -408,7 +408,7 @@ input[type="submit"]:hover {
     bottom: 0;
     right: 0;
 
-    height: 100vh;
+    height: 100%;
 
     border-bottom-right-radius: 20px;
 
@@ -1824,7 +1824,7 @@ input.description {
 
     width: fit-content;
     height: 24px;
-    left: 266px;
+    left: 83%;
     top: 165px;
 
     float: left;
@@ -1849,13 +1849,30 @@ input.description {
         z-index: -1;
     }
 
+    .request-lesson-box {
+        top: 0 !important;
+    }
+
+    .lesson-display .duration {
+        position: relative;
+        top: -22px;
+    }
+
+    .error-message {
+        overflow-wrap: anywhere;
+        width: 100%;
+        text-align: center;
+    }
+
     .main {
         top: 45px;
+        width: calc(100% - 70px);
     }
 
     .home {
         display: grid;
         left: 70px;
+        width: calc(100% - 70px);
     }
 
     .home .subjects {
@@ -1883,7 +1900,7 @@ input.description {
         height: 45px;
         box-shadow: 0.1px 0 3px 1.5px var(--box-shadow);
     }
-    
+
     .logo {
         position: relative;
         left: 2.5px;
@@ -1893,8 +1910,8 @@ input.description {
     }
 
     .topbar-right {
-        transform: translateY(25%);   
-    }  
+        transform: translateY(25%);
+    }
 
     .close-add-subject {
         transform: translateX(calc(-100% - 12px));
@@ -1913,7 +1930,8 @@ input.description {
     }
 
     .subject-box {
-        width: 320px;
+        width: 78vw;
+        top: -20px;
     }
 
     .add-subject-box {
@@ -1992,7 +2010,8 @@ input.description {
     }
 
     .home .sub-panel {
-        width: 331px;
+        width: calc(100% - 10px) !important;
+        min-width: calc(100% - 10px) !important;
     }
 
     .sub-title {
@@ -2003,8 +2022,8 @@ input.description {
     }
 
     .week {
-        transform: scale(0.88);
-        margin-left: 5px;
+        width: 100%;
+        border-spacing: 5px 25px;
     }
 
     .tutorstvo-arrows {
@@ -2026,7 +2045,7 @@ input.description {
     }
 
     .request-lesson-text {
-        font-size: 28px;
+        font-size: 26px;
         left: 20px;
     }
 
@@ -2038,5 +2057,15 @@ input.description {
 
     .request-lesson-side-box {
         scale: 1;
+    }
+
+    .day-container {
+        position: relative;
+        left: -200px;
+        top: -20px;
+    }
+
+    .subject-box-grid .title {
+        width: 50vw;
     }
 }
