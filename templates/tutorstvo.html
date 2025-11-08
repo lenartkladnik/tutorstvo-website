@@ -68,21 +68,28 @@
 
         {% for i, row in enumerate(rows[1]) %}
         <tr>
-            <th class="side">
-                <span class="indicator">{{ row[0] }}</span>
-                <br />
-                <span class="duration">{{ row[1] }}</span>
-                <br />
-                <span class="duration">{{ row[2] }}</span>
-                <br />
-            </th>
+            {% if not mobile %}
+                <th class="side">
+                    <span class="indicator">{{ row[0] }}</span>
+                    <br />
+                    <span class="duration">{{ row[1] }}</span>
+                    <br />
+                    <span class="duration">{{ row[2] }}</span>
+                    <br />
+                </th>
+            {% endif %}
 
             <th></th>
 
             {% set max_len, row_data = rows[0][i] %}
             {% for row_lessons in row_data %}
             {% set tracker = namespace(was_lesson=False,date=None) %}
+
             <th class="lesson-display">
+                {% if mobile %}
+                    <span class="duration">{{ row[0] }}: {{ row[1] }} - {{ row[2] }}</span>
+                {% endif %}
+
                 {% for data in row_lessons %}
                 {% set tracker.date, lesson = data %}
 

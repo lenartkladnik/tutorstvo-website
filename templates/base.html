@@ -87,6 +87,11 @@
                 {% set text = 'Učna sredstva' %}
                 {% include 'sidebar_snippet.html' %}
 
+                {% set href = 'faq' %}
+                {% set img = 'faq.svg' %}
+                {% set text = 'FAQ' %}
+                {% include 'sidebar_snippet.html' %}
+
                 {% if current_user.is_admin() %}
                 {% set href = 'admin-panel' %}
                 {% set img = 'admin-panel.svg' %}

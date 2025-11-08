@@ -263,7 +263,11 @@
         </div>
 
         <div class="sub-panel">
-            <h1>Uporabniki</h1>
+            {% set user_map = {} %}
+            {% for user in users_filtered %}
+                {% set _ = user_map.update({user.id: formatTitle(user.username)}) %}
+            {% endfor %}
+            <h1>Uporabniki ({{ len(user_map) }})</h1>
 
             <div style="position: relative;">
                 <a onclick="showElementById('filter-users');">
@@ -272,10 +276,6 @@
                 <input type="text" id='users-search' placeholder="Uporabniško ime" maxlength="76" />
             </div>
 
-            {% set user_map = {} %}
-            {% for user in users_filtered %}
-                {% set _ = user_map.update({user.id: formatTitle(user.username)}) %}
-            {% endfor %}
             <input type="hidden" id='all-users' value='{{ user_map | tojson }}'>
 
             <div class="usersContainer sub-container" id="users-container"></div>

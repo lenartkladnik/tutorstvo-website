@@ -1060,3 +1060,8 @@ def request_lesson(*, context):
     db.session.commit()
 
     return render_template('request_lesson.html', current_user=current_user(context), subjects=Subject.query.all(), lesson_request_db=LessonRequest)
+
+@views.route("/faq")
+@login_required
+def faq(*, context):
+    return render_template("faq.html", current_user=current_user(context), mobile=is_mobile(request))

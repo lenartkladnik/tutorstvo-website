@@ -148,6 +148,12 @@ input[type="radio"], input[type="checkbox"] {
     transform: translateX(-50%);
 }
 
+.center-left {
+    position: absolute;
+    left: 100% !important;
+    transform: translateX(-72%);
+}
+
 .center-top {
     position: absolute;
     margin-top: 50%;
@@ -171,6 +177,7 @@ input[type="radio"], input[type="checkbox"] {
     display: flex;
     align-items: center;
 }
+
 .text {
     all: unset;
     color: var(--text-color);
@@ -1841,6 +1848,21 @@ input.description {
     padding: 4px;
 }
 
+.faq-container {
+    margin: 5px;
+    padding: 10px;
+
+    background-color: var(--lesson-display-bg);
+    border: 2px solid var(--subject-box-border);
+    border-radius: 10px;
+
+    width: 700px;
+}
+
+.faq-q {
+    font-weight: bold;
+}
+
 @media only screen and (max-width: 600px) {
     .form h1 {
         left: calc(50% - 52px - 20px);
@@ -2067,5 +2089,13 @@ input.description {
 
     .subject-box-grid .title {
         width: 50vw;
+    }
+
+    .faq-container {
+        width: calc(100% - 15px);
+    }
+
+    .lb-container {
+        left: 65%;
     }
 }
