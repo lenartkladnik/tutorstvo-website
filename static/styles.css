@@ -1907,7 +1907,7 @@ input.description {
     }
 
     .sidebar.expanded {
-        width: 55vw;
+        width: fit-content;
     }
 
     .sidebar-toggle {
