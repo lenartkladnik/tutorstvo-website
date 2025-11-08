@@ -99,7 +99,11 @@
                 {% include 'sidebar_snippet.html' %}
                 {% endif %}
             </ul>
+            {% if not mobile %}
             <ul style="top: 90vh; position: absolute; width: 96%;">
+            {% else %}
+            <ul style="top: 87vh; position: absolute; width: 96%;">
+            {% endif %}
                 {% set href = 'https://github.com/lenartkladnik/tutorstvo-website/issues/new' %}
                 {% set img = 'bugs.svg' %}
                 {% set text = 'Prijavi napako' %}

@@ -609,7 +609,7 @@ function showElement(element) {
     try {
         element.style.visibility = 'visible';
     } catch (e) {
-        console.warn(`[hideElement] Couldn't show element '${element}': ${e}`);
+        console.warn(`[showElement] Couldn't show element '${element}': ${e}`);
     }
 }
 

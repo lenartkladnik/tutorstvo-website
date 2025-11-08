@@ -14,7 +14,7 @@
     <img class="bronze-medal noInvert" src="{{ url_for('static', filename='bronze_medal.png') }}">
     {% endif %}
     <span class="tutor-name">{{ tutor }}</span>
-    <div class="place-vis" style="width: {{ max_w }}px; background-image: linear-gradient(to right, var(--faint-main-color) {{ size }}%, rgba(0,0,0,0) {{ size }}%)"></div>
+    <div class="place-vis" style="background-image: linear-gradient(to right, var(--faint-main-color) {{ size }}%, rgba(0,0,0,0) {{ size }}%)"></div>
     <span class="score">{{ score }}</span>
     {% endfor %}
 </div>

@@ -1646,6 +1646,7 @@ input.description {
 	  background-color: var(--account-field-bg-color);
 	  height: 15px;
 	  display: inline-block;
+    width: 600px;
 }
 
 .score {
@@ -1987,8 +1988,7 @@ input.description {
     }
 
     .sub-panel {
-        max-width: 324px;
-        min-width: 324px;
+        width: calc(100vw - 105px) !important;
     }
 
     .sub .tutor-input {
@@ -2031,11 +2031,6 @@ input.description {
         grid-template-columns: repeat(1, 1fr);
     }
 
-    .home .sub-panel {
-        width: calc(100% - 10px) !important;
-        min-width: calc(100% - 10px) !important;
-    }
-
     .sub-title {
         display: inline-block !important;
         position: relative !important;
@@ -2068,7 +2063,7 @@ input.description {
 
     .request-lesson-text {
         font-size: 26px;
-        left: 20px;
+        left: calc(50vw - 170px);
     }
 
     .request-lesson-side-grid {
@@ -2098,4 +2093,51 @@ input.description {
     .lb-container {
         left: 65%;
     }
+
+    .search-results {
+        left: 45%;
+    }
+
+    #subject-form {
+        scale: 1.15;
+        z-index: 1001;
+
+        position: relative;
+    }
+
+    .place-vis {
+        width: 105px;
+    }
+
+    .welcome {
+        left: calc(50% + 28px);
+    }
+}
+
+@media only screen and (max-width: 400px) {
+  .week {
+      position: relative;
+
+      border-spacing: 0 25px;
+      left: -2px;
+  }
+
+  .place-vis {
+      width: 80px;
+  }
+}
+
+@media only screen and (max-width: 380px) {
+  .week {
+      border-spacing: 0 25px;
+      scale: 0.96;
+  }
+
+  #subject-form {
+      scale: 1.1;
+  }
+
+  .place-vis {
+      width: 50px;
+  }
 }

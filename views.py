@@ -265,7 +265,7 @@ def requestAdmin(*, context):
         else:
             flash("Wrong password", "danger")
 
-    return render_template("admin.html", current_user=current_user(context), form=form)
+    return render_template("admin.html", current_user=current_user(context), mobile=is_mobile(request), form=form)
 
 @views.route('/admin-panel', methods=['GET', 'POST'])
 @login_required
@@ -377,7 +377,7 @@ def adminPanel(*, context):
 
     all_potential_tutors = [user for user in User.query.all() if user.applied_subjects]
 
-    return render_template("admin_panel.html", current_user=current_user(context), users_filtered=users_filtered, all_potential_tutors=all_potential_tutors, int=int, len=len, admins=admins, users=users, User=User, tutor_manage_id=tutor_manage_id, remove_user_id=remove_user_id, manage_user_id=manage_user_id, tutors=zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors), subjects=subjects, subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
+    return render_template("admin_panel.html", current_user=current_user(context), mobile=is_mobile(request), users_filtered=users_filtered, all_potential_tutors=all_potential_tutors, int=int, len=len, admins=admins, users=users, User=User, tutor_manage_id=tutor_manage_id, remove_user_id=remove_user_id, manage_user_id=manage_user_id, tutors=zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors), subjects=subjects, subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
 
 @views.route('/modify-user/<int:id>', methods=['POST'])
 @login_required
@@ -618,7 +618,7 @@ def home(*, context):
     msg = random.randrange(0, len(BECOME_A_TUTOR_MESSAGES))
     random_message = BECOME_A_TUTOR_MESSAGES[msg].split(' - ')
 
-    return render_template('index.html', current_user=current_user(context), lessons=lessons, subjects=subjects, subject_db=Subject, user_db=User, become_a_tutor_message=random_message)
+    return render_template('index.html', current_user=current_user(context), mobile=is_mobile(request), lessons=lessons, subjects=subjects, subject_db=Subject, user_db=User, become_a_tutor_message=random_message)
 
 months = {
     1: 'Januar',
@@ -919,7 +919,7 @@ def removeLesson(*, context, id):
 def learning_resources(*, context):
     subjects = Subject.query.all()
 
-    return render_template('learning_resources.html', current_user=current_user(context), subjects=subjects)
+    return render_template('learning_resources.html', current_user=current_user(context), mobile=is_mobile(request), subjects=subjects)
 
 @views.route('/add-learning-resource', methods=['POST'])
 @login_required
@@ -983,13 +983,8 @@ def select_group(*, context):
 @login_required
 def leaderboard(*, context):
     lb = get_leaderboard(User, Subject)
-    if not is_mobile(request):
-        max_w = 600 - 1
 
-    else:
-        max_w = 50 - 1
-
-    return render_template('leaderboard.html', current_user=current_user(context), lb=lb, max_w=max_w)
+    return render_template('leaderboard.html', current_user=current_user(context), mobile=is_mobile(request), lb=lb)
 
 @views.route('/become-a-tutor', methods=["POST"])
 @login_required
@@ -1059,7 +1054,7 @@ def request_lesson(*, context):
 
     db.session.commit()
 
-    return render_template('request_lesson.html', current_user=current_user(context), subjects=Subject.query.all(), lesson_request_db=LessonRequest)
+    return render_template('request_lesson.html', current_user=current_user(context), mobile=is_mobile(request), subjects=Subject.query.all(), lesson_request_db=LessonRequest)
 
 @views.route("/faq")
 @login_required
