@@ -150,8 +150,6 @@ a:active img {
     position: absolute;
     margin-left: calc(50% - 52px);
     transform: translateX(-50%);
-
-    width: fit-content !important;
 }
 
 .center-left {
@@ -201,6 +199,8 @@ html {
     left: 52px;
 
     width: calc(100vw - 102px);
+    padding-left: 10px;
+
 }
 
 .big-logo {
@@ -1966,6 +1966,7 @@ input.description {
 }
 
 @media only screen and (min-width: 321px)
+                   and (max-width: 850px)
                    and (orientation: landscape){
     .week tr:not(:first-child) {
         transform: translateX(50%);
