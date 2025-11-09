@@ -245,9 +245,16 @@ def is_lesson_removable(lesson):
 
     return True
 
-def is_mobile(request: Request):
+def is_tablet(request: Request) -> bool:
     user_agent = request.headers.get('User-Agent', '').lower()
-    if any(mobile in user_agent for mobile in ['iphone', 'android', 'ipad', 'mobile']):
+    if any(tablet in user_agent for tablet in ['ipad','tablet','playbook','silk','nexus','sm-t','sm-p','gt-p','galaxy tab','tab;','xoom','kindle','kfapwi','kfthwi','kfsowi','kfaowi']):
+        return True
+
+    return False
+
+def is_mobile(request: Request) -> bool:
+    user_agent = request.headers.get('User-Agent', '').lower()
+    if not is_tablet(request) and any(mobile in user_agent for mobile in ['iphone', 'android', 'mobi']):
         return True
 
     return False

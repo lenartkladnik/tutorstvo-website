@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set page = "tutorstvo" %}
 
 {% block stylesheet %}
 <link rel="stylesheet" id="flatpickr-theme" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
@@ -8,7 +9,7 @@
 
 {% set expl = "MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca\nDSP - Dijaška soba pri plesni dvorani" %}
 
-{% if not mobile %}
+{% if not mobile and not tablet %}
 <div class="main center">
 {% else %}
 <div class="main" style="width: 88%;">
@@ -37,12 +38,16 @@
 
     </div>
 
-    <table class="week">
-
-        {% if not mobile %}
-
+    <div class="week-bg">
+    <table class="week{{ ' center' if tablet else '' }}">
         <tr>
-            <th><th />
+            {% if not tablet %}
+            <th></th>
+            {% if not mobile %}
+            <th></th>
+            {% endif %}
+            {% endif %}
+
             {% for day, date in days[0] %}
             <th class="day-container">
                 <span class="day">{{ day }}</span>
@@ -52,23 +57,9 @@
             {% endfor %}
         </tr>
 
-        {% else %}
-
-        <tr>
-            <th><th />
-
-            <th class="day-container">
-                <span class="day">{{ days[0][0] }}</span>
-                <br />
-                <span class="date">{{ days[0][1] }}</span>
-            </th>
-        </tr>
-
-        {% endif %}
-
         {% for i, row in enumerate(rows[1]) %}
         <tr>
-            {% if not mobile %}
+            {% if not mobile and not tablet %}
                 <th class="side">
                     <span class="indicator">{{ row[0] }}</span>
                     <br />
@@ -79,14 +70,16 @@
                 </th>
             {% endif %}
 
+            {% if not mobile and not tablet %}
             <th></th>
+            {% endif %}
 
             {% set max_len, row_data = rows[0][i] %}
             {% for row_lessons in row_data %}
             {% set tracker = namespace(was_lesson=False,date=None) %}
 
             <th class="lesson-display">
-                {% if mobile %}
+                {% if mobile or tablet %}
                     <span class="duration">{{ row[0] }}: {{ row[1] }} - {{ row[2] }}</span>
                 {% endif %}
 
@@ -149,6 +142,7 @@
         </tr>
         {% endfor %}
     </table>
+    </div>
 </div>
 
 {% if current_user.is_tutor() %}

@@ -1,5 +1,5 @@
 <li>
-    <a onclick="setState('sidebar', ''); window.location.href='{{ href }}'" class="sidebar-link">
+    <a onclick="setState('sidebar', ''); window.location.href='{{ href }}'" class="sidebar-link {{ 'sidebar-selected' if href == page else '' }}">
         <img src="{{ url_for('static', filename=img) }}" class="sidebar-icon">
     <span class="sidebar-text">{{ text }}</span>
     </a>

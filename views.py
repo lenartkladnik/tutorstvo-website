@@ -6,7 +6,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, is_mobile, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, is_mobile, is_tablet, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
 import random
@@ -655,6 +655,23 @@ def getWeek(start_date: datetime) -> tuple[list[tuple], str]:
 
     return week, days[start_date.weekday()]
 
+def nextWeekDates(start_date: datetime, n: int) -> tuple[list[tuple], str]:
+    days_ = []
+
+    i = 0
+    of = 1
+
+    while i < n:
+        d = start_date + timedelta(days=of)
+        if d.weekday() < 5:
+            days_.append((days[d.weekday()], f"{d.day} {months[d.month]}"))
+
+            i += 1
+
+        of += 1
+
+    return days_, days[start_date.weekday()]
+
 def isInTimeRange(time: str, timeRange: tuple[str, str], format: str = "%H:%M") -> bool:
     time_datetime = datetime.strptime(time, format).time()
     timeRange_datetime = [datetime.strptime(i, format).time() for i in timeRange]
@@ -744,13 +761,14 @@ def tutorstvo(*, context):
     lessons = [d for d, m in zip(lessons, mask) if m]
 
     mobile = is_mobile(request)
+    tablet = is_tablet(request)
 
     startDate = request.args.get('date')
-    if (startDate != '' and startDate) and not mobile:
+    if (startDate != '' and startDate) and not mobile and not tablet:
         startDate = datetime.strptime(startDate, DATETIME_FORMAT_PY)
         startDate = startDate - timedelta(days=startDate.weekday())
 
-    elif not mobile:
+    elif not mobile and not tablet:
         startDate = datetime.today() - timedelta(days=datetime.today().weekday())
 
     elif not startDate or startDate == '':
@@ -761,7 +779,7 @@ def tutorstvo(*, context):
 
     lessons_by_column = []
 
-    r = 1 if mobile else 5
+    r = 1 if mobile else 2 if tablet else 5
     for idx in range(r):
         column = []
         column_lessons = list(
@@ -805,13 +823,22 @@ def tutorstvo(*, context):
         if startDate.weekday() > 4:
             startDate = startDate + timedelta(days=abs(startDate.weekday() - 7))
 
-        days_ = [(days[startDate.weekday()], f"{startDate.day}. {months[startDate.month]}"), days[startDate.weekday()]]
+        days_ = nextWeekDates(startDate, 1) # [(days[startDate.weekday()], f"{startDate.day}. {months[startDate.month]}"), days[startDate.weekday()]]
         startNext = [
                         (startDate - timedelta(days=1) if (startDate - timedelta(days=1)).weekday() <= 4 else startDate - timedelta(days=3)).strftime(DATETIME_FORMAT_PY),
                         (startDate + timedelta(days=1) if startDate.weekday() + 1 <= 4 else startDate + timedelta(days=3)).strftime(DATETIME_FORMAT_PY)
                     ]
 
-        startNext[0] = startNext[0] if datetime.strptime(startNext[0], DATETIME_FORMAT_PY) >= datetime.today() - timedelta(days=1) else ''
+        startNext[0] = startNext[0] if datetime.strptime(startNext[0], DATETIME_FORMAT_PY) >= datetime.today() - timedelta(days=4) else ''
+
+    elif tablet:
+        days_ = nextWeekDates(startDate, 2)
+        startNext = [
+                        (startDate - timedelta(days=2) if (startDate - timedelta(days=2)).weekday() <= 4 else startDate - timedelta(days=4)).strftime(DATETIME_FORMAT_PY),
+                        (startDate + timedelta(days=2) if startDate.weekday() + 2 <= 4 else startDate + timedelta(days=4)).strftime(DATETIME_FORMAT_PY)
+                    ]
+
+        startNext[0] = startNext[0] if datetime.strptime(startNext[0], DATETIME_FORMAT_PY) >= datetime.today() - timedelta(days=4) else ''
 
     all_tutors = {}
     for subject in all_subjects:
@@ -837,7 +864,7 @@ def tutorstvo(*, context):
                            classroom_data=classroom_data,
                            lesson_creation_error=lesson_creation_error,
                            human_readable_groups=HUMAN_READABLE_GROUPS,
-                           has_passed=has_passed)
+                           has_passed=has_passed, tablet=tablet)
 
 @views.route('/tutorstvo/add/<int:id>')
 @login_required

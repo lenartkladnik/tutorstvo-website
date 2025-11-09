@@ -9,10 +9,10 @@
 
     --invert: 0%;
 
-    --main-color: hsl(var(--main-color-h), var(--main-color-s), var(--main-color-l));
+    --main-color: hsl(var(--main-color-h), var(--main-color-s), var(--main-color-l), 0.9);
     --non-clickable-color: #4c4c4c;
     --faint-main-color: hsla(var(--main-color-h), var(--main-color-s), var(--main-color-l), 0.5);
-    --selection-color: hsla(var(--main-color-h), var(--main-color-s), var(--main-color-l), 0.2);
+    --selection-color: hsla(var(--main-color-h), var(--main-color-s), var(--main-color-l), 0.05);
     --panel-color: hsla(var(--main-color-h), var(--main-color-s), calc(var(--main-color-l) + 50%), 0.76);
     --bg-color: hsla(var(--main-color-h), var(--main-color-s), calc(var(--main-color-l) + 40%), 0.55);
     --border-color: hsl(0, 0%, 61%);
@@ -70,7 +70,7 @@
     --main-color: hsl(var(--main-color-h), var(--main-color-s), var(--main-color-l));
     --non-clickable-color: hsl(0, 0%, 70%);
     --faint-main-color: hsla(var(--main-color-h), var(--main-color-s), var(--main-color-l), 0.5);
-    --selection-color: hsla(var(--main-color-h), var(--main-color-s), calc(var(--main-color-l) - 30%), 0.2);
+    --selection-color: hsla(var(--main-color-h), var(--main-color-s), calc(var(--main-color-l) - 30%), 0.05);
     --panel-color: hsla(var(--main-color-h), var(--main-color-s), calc(var(--main-color-l) - 30%), 0.1);
     --bg-color: #121212;
     --border-color: hsl(0, 0%, 15%);
@@ -138,14 +138,20 @@ input[type="radio"], input[type="checkbox"] {
     cursor: pointer;
 }
 
+a:active img {
+    transform: translateY(4px);
+}
+
 .invert {
     filter: invert(var(--invert));
 }
 
 .center {
     position: absolute;
-    margin-left: 50%;
+    margin-left: calc(50% - 52px);
     transform: translateX(-50%);
+
+    width: fit-content !important;
 }
 
 .center-left {
@@ -278,6 +284,8 @@ html {
 .home #tutor-board {
     font-size: 20px;
     max-width: 700px;
+
+    text-align: center;
 }
 
 .home #tutor-board .celebrating {
@@ -1331,9 +1339,20 @@ input.description {
     color: inherit;
 }
 
-.week {
-    color: var(--week-color);
+.week-bg {
+    position: absolute;
+
     background-color: var(--week-bg);
+    width: 100vw;
+
+    margin-top: 10px;
+}
+
+.week {
+    position: relative;
+
+    color: var(--week-color);
+    background-color: transparent;
 
     border-spacing: 10px;
     margin-top: 5px;
@@ -1858,10 +1877,99 @@ input.description {
     border-radius: 10px;
 
     width: 700px;
+    max-width: calc(100vw - 200px);
 }
 
 .faq-q {
     font-weight: bold;
+}
+
+@media only screen and (600px <= width <= 1080px) {
+    .lesson-display .duration {
+        position: relative;
+        top: -22px;
+    }
+
+    .week {
+        border-spacing: 5px 25px;
+    }
+
+    .subject-box {
+        top: -20px;
+    }
+
+    .week-bg {
+        left: -52px;
+    }
+
+    .home {
+        display: grid;
+        grid-template-columns: repeat(1, 0.85fr);
+    }
+
+    .home #tutor-board {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .request-lesson-text {
+        font-size: 26px;
+        left: calc(50vw - 170px);
+    }
+
+    .request-lesson-box {
+        top: 0 !important;
+        --scale: 1.5;
+        left: 50%;
+        transform: translate(-28%, 40px);
+    }
+
+    .request-lesson-text {
+        font-size: 26px;
+        left: calc(50vw - 170px);
+    }
+
+    .request-lesson-side-grid {
+    }
+
+    .request-lesson-side-box {
+        scale: 1;
+    }
+
+    .request-lesson-side-grid {
+        left: 10vw;
+        top: 200px;
+        gap: 4px;
+        scale: 1.1;
+        grid-template-columns: repeat(2, 0.5fr);
+    }
+
+    .place-vis {
+        width: 550px;
+    }
+}
+
+
+
+@media only screen and (max-width: 850px) {
+    .request-lesson-side-grid {
+        left: 6.5vw;
+        top: 200px;
+        gap: 4px;
+        scale: 1.1;
+        grid-template-columns: repeat(2, 0.2fr);
+    }
+
+    .place-vis {
+        width: 380px;
+    }
+}
+
+@media only screen and (min-width: 321px)
+                   and (orientation: landscape){
+    .week tr:not(:first-child) {
+        transform: translateX(50%);
+    }
 }
 
 @media only screen and (max-width: 600px) {
@@ -1874,6 +1982,7 @@ input.description {
 
     .request-lesson-box {
         top: 0 !important;
+        --scale: 1;
     }
 
     .lesson-display .duration {
@@ -2057,10 +2166,6 @@ input.description {
         top: 0;
     }
 
-    .request-lesson-box {
-        --scale: 1;
-    }
-
     .request-lesson-text {
         font-size: 26px;
         left: calc(50vw - 170px);
@@ -2069,7 +2174,11 @@ input.description {
     .request-lesson-side-grid {
         left: 18px;
         top: 100px;
+
         gap: 4px;
+
+        scale: 1;
+        grid-template-columns: repeat(1, 1fr);
     }
 
     .request-lesson-side-box {

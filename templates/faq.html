@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% set page = "faq" %}
 
 {% set faq = {"Kaj pomenijo oznake MSV, MPK, MDŽ in DSP?": "MSV - Miza pri stranskem vhodu<br />MPK - Miza pri knjižnici<br />MDŽ - Miza dežurnega učenca<br />DSP - Dijaška soba pri plesni dvorani" + ("<br /><br />(Lahko tudi podržiš kazalec miške nad <img title=\"MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca\nDSP - Dijaška soba pri plesni dvorani\" src=\"/static/info.svg\" class=\"info-icon\" style=\"position: relative; left: 0; top: 2px;\"> simbolom, ki ti bo prikazal pomen oznak.)" if not mobile else ""),
               "Kje lahko kot tutor naredim uro?": "V stranskem meniju izberi 'Tutorstvo', klikni na prazen prostor v urniku, da tam ustvariš uro."} %}
@@ -6,7 +7,7 @@
 {% block content %}
 <h1 class="welcome">Pogosta vprašanja</h1>
 {% if not mobile %}
-<div class="main center-left" style="margin-top: 80px;">
+<div class="main center" style="margin-top: 80px;">
 {% else %}
 <div class="main" style="margin-top: 80px;">
 {% endif %}
