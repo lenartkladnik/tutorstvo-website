@@ -92,6 +92,37 @@ def getEmails(usernames: list[str]) -> list[str]:
 # def isAllowedFile(filename):
 #     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def set_tutor(user: str | User, subjects: list[str]):
+    if isinstance(user, str):
+        user = User.query.filter_by(username=user).first()
+
+    user.tutoring_subjects = ','.join(set(subjects))
+
+    for s in Subject.query.all():
+        if s.name in subjects:
+            s.tutors = ','.join(list(set(s.get_tutors() + [user.username])))
+
+        else:
+            s.tutors = ','.join(list(set(s.get_tutors()) - set([user.username])))
+
+    db.session.commit()
+
+def set_admin(user: str | User):
+    if isinstance(user, str):
+        user = User.query.filter_by(username=user).first()
+
+    user.role = 'admin'
+
+    db.session.commit()
+
+def set_user(user: str | User):
+    if isinstance(user, str):
+        user = User.query.filter_by(username=user).first()
+
+    user.role = 'user'
+
+    db.session.commit()
+
 def admin_required(func):
     """
     Decorator for functions that only a
@@ -255,7 +286,7 @@ def requestAdmin(*, context):
 
         if check_password_hash(hash, form.password.data):
             user = current_user(context)
-            user.role = 'admin'
+            set_admin(user)
             db.session.commit()
 
             log(f"Made {user.username} ({user.email}) an administrator.", "views.requestAdmin")
@@ -332,20 +363,15 @@ def adminPanel(*, context):
 
             db.session.commit()
 
-            log(f"Rejected user {user_to_be_rejected.username} ({user_to_be_rejected.email}) from being a tutor.", "views.adminPanel")
+            log(f"Blocked user {user_to_be_rejected.username} ({user_to_be_rejected.email}) from ever becoming a tutor.", "views.adminPanel")
 
     elif accept_potential_tutor:
         user_to_be_accepted = User.query.filter_by(id=potential_tutor_user_id).first()
         if user_to_be_accepted:
             subjects_for_tutor = user_to_be_accepted.get_applied_subjects()
 
-            for subject in subjects_for_tutor:
-                s = Subject.query.filter_by(name=subject).first()
+            set_tutor(user_to_be_accepted, subjects_for_tutor)
 
-                if s and not (user_to_be_accepted.username in s.get_tutors()):
-                    s.tutors = ','.join(s.get_tutors() + [user_to_be_accepted.username])
-
-            user_to_be_accepted.tutoring_subjects = user_to_be_accepted.applied_subjects
             user_to_be_accepted.applied_subjects = ''
             user_to_be_accepted.tutor = 1
 
@@ -359,13 +385,13 @@ def adminPanel(*, context):
     if filter_data:
         for user in users:
             year_f = filter_data.get('year', None)
-            tutor_f = filter_data.get('tutor-for', None)
+            tutor_f = filter_data.get('tutor-for', [])
             admin_f = filter_data.get('is-admin', None)
 
             if year_f and user.get_year() not in year_f:
                 continue
 
-            if tutor_f and len(set(tutor_f) - set(user.tutor_for(Subject))) > 0:
+            if tutor_f and not any([s in user.get_tutoring_subjects() for s in tutor_f]):
                 continue
 
             if admin_f != None and user.is_admin() != admin_f:
@@ -377,7 +403,20 @@ def adminPanel(*, context):
 
     all_potential_tutors = [user for user in User.query.all() if user.applied_subjects]
 
-    return render_template("admin_panel.html", current_user=current_user(context), mobile=is_mobile(request), users_filtered=users_filtered, all_potential_tutors=all_potential_tutors, int=int, len=len, admins=admins, users=users, User=User, tutor_manage_id=tutor_manage_id, remove_user_id=remove_user_id, manage_user_id=manage_user_id, tutors=zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors), subjects=subjects, subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids, formatTitle=formatTitle, zip=zip, set=set, list=list)
+    return render_template("admin_panel.html",
+                           current_user=current_user(context),
+                           mobile=is_mobile(request),
+                           users_filtered=users_filtered,
+                           all_potential_tutors=all_potential_tutors, int=int,
+                           len=len, admins=admins, users=users, User=User,
+                           tutor_manage_id=tutor_manage_id,
+                           remove_user_id=remove_user_id,
+                           manage_user_id=manage_user_id,
+                           tutors=zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors),
+                           subjects=subjects,
+                           subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids,
+                           formatTitle=formatTitle, zip=zip, set=set,
+                           list=list)
 
 @views.route('/modify-user/<int:id>', methods=['POST'])
 @login_required
@@ -385,43 +424,29 @@ def adminPanel(*, context):
 def modify_user(*, context, id):
     form = request.form # Treated as safe since only authorized users can access this
 
-    if form:
-        user = User.query.filter_by(id=id).first()
+    user = User.query.filter_by(id=id).first()
 
-        if not user:
-            return redirect(safe_redirect(request.referrer))
+    if not user:
+        return redirect(url_for('views.adminPanel'))
 
-        is_admin = form.get('is-admin')
-        year = form.get('year')
-        tutor_for = form.getlist('tutor-for')
+    is_admin = form.get('is-admin', 'off')
+    year = form.get('year', None)
+    tutor_for = list(set(form.getlist('tutor-for')))
 
-        if is_admin == 'on':
-            user.role = 'admin'
+    if is_admin == 'on':
+        set_admin(user)
 
-        else:
-            user.role = 'user'
+    else:
+        set_user(user)
 
-        if year:
-            user.groups = year
+    if year:
+        user.groups = year
 
-        if tutor_for:
-            user.tutoring_subjects = ','.join(tutor_for)
+    set_tutor(user, tutor_for)
 
-            for subject in Subject.query.all():
-                s = Subject.query.filter_by(name=subject.name).first()
+    db.session.commit()
 
-                if not s:
-                    continue
-
-                if subject.name in tutor_for:
-                    s.tutors = ','.join(list(set(s.get_tutors() + [user.username])))
-
-                else:
-                    s.tutors = ','.join(list(set(s.get_tutors()) - set([user.username])))
-
-        db.session.commit()
-
-    return redirect(safe_redirect(request.referrer))
+    return redirect(url_for('views.adminPanel'))
 
 @views.route('/modify-tutor/<int:id>', methods=['POST'])
 @login_required
@@ -429,31 +454,18 @@ def modify_user(*, context, id):
 def modify_tutor(*, context, id):
     form = request.form # Treated as safe since only authorized users can access this
 
-    if form:
-        user = User.query.filter_by(id=id).first()
+    user = User.query.filter_by(id=id).first()
 
-        if not user:
-            return redirect(safe_redirect(request.referrer))
+    if not user:
+        return redirect(url_for('views.adminPanel'))
 
-        tutor_for = form.getlist('tutor-for')
+    tutor_for = list(set(form.getlist('tutor-for')))
 
-        if tutor_for:
-            user.tutoring_subjects = ','.join(tutor_for)
-            for subject in Subject.query.all():
-                s = Subject.query.filter_by(name=subject.name).first()
+    set_tutor(user, tutor_for)
 
-                if not s:
-                    continue
+    db.session.commit()
 
-                if subject.name in tutor_for:
-                    s.tutors = ','.join(list(set(s.get_tutors() + [user.username])))
-
-                else:
-                    s.tutors = ','.join(list(set(s.get_tutors()) - set([user.username])))
-
-        db.session.commit()
-
-    return redirect(safe_redirect(request.referrer))
+    return redirect(url_for('views.adminPanel'))
 
 @views.route('/remove-user/<int:id>')
 @login_required
@@ -562,19 +574,10 @@ def addRole(*, context, role):
 
         if user:
             if role == 'admin':
-                user.role = role
+                set_admin(user)
 
             elif role == 'tutor':
-                subjects = list(set(request.form.getlist('subjects[]')))
-                user.tutoring_subjects = ','.join(subjects)
-
-                for subject in subjects:
-                    s = Subject.query.filter_by(name=subject).first()
-
-                    if s and not (user.username in s.get_tutors()):
-                        s.tutors = ','.join(s.get_tutors() + [user.username])
-
-            db.session.commit()
+                set_tutor(user, list(set(user.get_tutoring_subjects() + request.form.getlist('subjects[]'))))
 
         else:
             flash('There is no user with that name.', 'danger')
@@ -592,11 +595,11 @@ def removeRole(*, context, role, id):
         return redirect(safe_redirect(request.referrer))
 
     if role == 'admin':
-        user.role = 'user'
+        set_user(user)
 
     elif role == 'tutor':
         if user.role != 'admin':
-            user.role = 'user'
+            set_user(user)
 
         subjects = Subject.query.filter_by().all()
         user.tutoring_subjects = ''
