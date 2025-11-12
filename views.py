@@ -176,17 +176,18 @@ def fake_login(func):
 
     return wrapper
 
+def login(func):
+    if DEBUG < 2:
+        return auth.login_required(func)
+
+    else:
+        return fake_login(func)
+
 def login_required(func):
     """
     Rename auth.login_required to login_required and add debug functionality.
     Add user blocking functionality.
     """
-
-    if DEBUG < 2:
-        login = auth.login_required
-
-    else:
-        login = fake_login
 
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -202,6 +203,22 @@ def login_required(func):
                 db.session.commit()
 
             return render_template("forbidden.html", current_user=user)
+
+        today = datetime.today()
+        if not user.updated_year and today.month == 9 and today.day == 1:
+            full_year = user.get_year()
+            if len(full_year) > 1 and full_year[1].isdigit():
+                y = int(full_year[1]) + 1
+                if y <= 4:
+                    user.groups = f'y{y}'
+                user.updated_year = True
+
+            db.session.commit()
+
+        if user.updated_year and today.month == 9 and today.day == 2:
+            user.updated_year = False
+
+            db.session.commit()
 
         return func(*args, **kwargs)
 

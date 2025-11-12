@@ -32,6 +32,7 @@ class User(db.Model):
     rejected_at = db.Column(db.String)
     tutoring_subjects = db.Column(db.String(200), default='', nullable=False)
     issues = db.Column(db.Integer, default=0)
+    updated_year = db.Column(db.Boolean, nullable=True)
 
     def is_rejected(self) -> bool:
         return self.rejected == 1
