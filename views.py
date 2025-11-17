@@ -777,8 +777,9 @@ def tutorstvo(*, context):
     search = request.args.get('search', None)
 
     lessons = Lesson.query.filter(Lesson.id.notin_(current_user(context).getSelectedSubjects()))
-    mask = list(map(lambda lesson: any(map(lambda x: x in current_user(context).get_groups() or current_user(context).username in lesson.get_tutors(), lesson.get_groups())), lessons))
-    lessons = [d for d, m in zip(lessons, mask) if m]
+    if not current_user(context).is_admin():
+        mask = list(map(lambda lesson: any(map(lambda x: x in current_user(context).get_groups() or current_user(context).username in lesson.get_tutors(), lesson.get_groups())), lessons))
+        lessons = [d for d, m in zip(lessons, mask) if m]
 
     mobile = is_mobile(request)
     tablet = is_tablet(request)
@@ -1086,7 +1087,7 @@ def request_lesson(*, context):
         if not LessonRequest.query.filter_by(subject=request.form["subject"]).first().exists_user_entry(current_user(context).username):
             lesson_request = LessonRequest.query.filter_by(subject=request.form['subject']).first()
             new_comment = Comment(
-                content=request.form['comment'],
+                content=request.form['comment'] + ", " + current_user(context).human_readable_year(),
                 lesson_request=lesson_request,
                 by=current_user(context).username
             )

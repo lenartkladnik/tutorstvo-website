@@ -136,6 +136,9 @@ class User(db.Model):
             if i[0] == self.username:
                 return i[1]
 
+    def human_readable_year(self):
+        return HUMAN_READABLE_GROUPS[self.get_year()]
+
 class Lesson(db.Model):
     __tablename__ = 'lessons'
 

@@ -7,8 +7,8 @@
     <form class="subject-box request-lesson-box" action="/request-lesson" method="POST" autocomplete="off">
         <div class="subject-box-grid request-lesson-box-grid">
             <div style="display: flex; height: 0;">
-                <input name="subject" type="text" list="subjectList" placeholder="Predmet" class="title" required />
-                <datalist id="subjectList">
+                <select name="subject" type="text" placeholder="Predmet" class="title" required>
+                    <option value="" disabled selected>Predmet</span>
                     {% for subject in subjects %}
                     {% if lesson_request_db.query.filter_by(subject=subject.name).first() %}
                     {% if not lesson_request_db.query.filter_by(subject=subject.name).first().exists_user_entry(current_user.username) %}
@@ -18,10 +18,14 @@
                     <option value="{{ subject.name }}">{{ subject.name.capitalize() }}</option>
                     {% endif %}
                     {% endfor %}
-                <datalist>
+                </select>
             </div>
 
-            <input name="comment" type="text" class="description" maxlength="34" placeholder="Snov, komentarji, ipd." />
+            <div>
+                <input name="comment" type="text" class="description" maxlength="34" placeholder="Snov, komentarji, ipd." />
+                <span>, {{ current_user.human_readable_year() }}</span>
+            </div>
+
         </div>
         <input type="submit" value="Potrdi" class="request-lesson-button" />
     </form>
@@ -56,6 +60,7 @@
             }
         </script>
         {% for lesson_request in lesson_request_db.query.all() %}
+        {% if lesson_request.count() %}
         <div id="{{ lesson_request.subject }}-lesson-main" class="subject-box request-lesson-side-box" onclick="toggleLessonPreview('{{ lesson_request.subject }}');">
             <span class="title">{{ lesson_request.subject }}</span>
             <div style="display: float;">
@@ -71,7 +76,8 @@
                 {% endfor %}
             </div>
         </div>
-    {% endfor %}
+        {% endif %}
+        {% endfor %}
     </div>
 </div>
 {% endblock %}

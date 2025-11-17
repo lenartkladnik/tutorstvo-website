@@ -56,6 +56,8 @@
     --search-results-bg: white;
 
     --text-button-hover-bg: #f0f0f03b;
+
+    --placeholder-color: #9d9d9d;
 }
 
 :root.dark-mode {
@@ -136,6 +138,7 @@ input[type="image"]:not(.noInvert) {
 
 input[type="radio"], input[type="checkbox"] {
     cursor: pointer;
+    width: auto;
 }
 
 a:active img {
@@ -240,6 +243,10 @@ html {
     align-items: center;
     white-space: nowrap;
     gap: 0.5rem;
+}
+
+select:invalid {
+    color: var(--placeholder-color) !important;
 }
 
 .home {
@@ -1720,7 +1727,7 @@ input.description {
 
 .popup-form-button {
     border: solid 1.7px var(--text-color);
-    border-radius: 8px;
+    border-radius: 6px;
     padding: 5px;
     margin: 5px;
     float: right;
@@ -1882,6 +1889,54 @@ input.description {
     font-weight: bold;
 }
 
+.bottom-right-icon {
+    position: absolute;
+    top: 80%;
+    left: 90%;
+}
+
+@media only screen and (1320px < width < 1900px) {
+    .request-lesson-side-grid {
+        grid-template-columns: repeat(1, 1fr);
+        left: 58vw;
+        width: 30vw;
+    }
+
+    .request-lesson-box {
+        left: 12vw;
+    }
+}
+
+@media only screen and (1080px < width < 1320px) {
+    .request-lesson-text {
+        font-size: 26px;
+        left: calc(50vw - 170px);
+    }
+
+    .request-lesson-box {
+        top: 0 !important;
+        --scale: 1.5;
+        left: 50%;
+        transform: translate(-28%, 40px);
+    }
+
+    .request-lesson-text {
+        font-size: 26px;
+        left: calc(50vw - 170px);
+    }
+
+    .request-lesson-side-box {
+        scale: 1.5;
+        margin-right: 12vw;
+    }
+
+    .request-lesson-side-grid {
+        left: 10vw;
+        top: 200px;
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media only screen and (600px <= width <= 1080px) {
     .lesson-display .duration {
         position: relative;
@@ -1925,9 +1980,6 @@ input.description {
     .request-lesson-text {
         font-size: 26px;
         left: calc(50vw - 170px);
-    }
-
-    .request-lesson-side-grid {
     }
 
     .request-lesson-side-box {
@@ -2013,10 +2065,6 @@ input.description {
 
     .sidebar {
         top: 45px;
-    }
-
-    .sidebar.expanded {
-        width: fit-content;
     }
 
     .sidebar-toggle {
@@ -2220,6 +2268,20 @@ input.description {
     .welcome {
         left: calc(50% + 28px);
     }
+
+    .lb-container {
+        grid-template-columns: repeat(3, auto);
+    }
+}
+
+@media only screen and (max-width: 500px) {
+  #manage-user {
+      text-align: center;
+  }
+
+  .tutor-for {
+      grid-template-columns: repeat(3, auto);
+  }
 }
 
 @media only screen and (max-width: 400px) {

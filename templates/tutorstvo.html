@@ -156,6 +156,7 @@
         <div class="subject-box-grid">
           <div style="display: flex;">
                 <select class="title" id="subject-selector" name="title" required>
+                    <option value="" disabled selected>Predmet</span>
                     {% for subject in subjects %}
                     <option value="{{ subject }}">{{ subject.capitalize() }}</option>
                     {% endfor %}

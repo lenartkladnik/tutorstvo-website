@@ -21,3 +21,19 @@
 </span>
 <span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">{{ lesson.tutors }}</span>
 <span class="tutors" style="{{ 'filter: grayscale(100%) contrast(30%) brightness(1.2) opacity(0.5);' if gray_subject_box else 'filter: none;' }}">{{ lesson.human_readable_groups() }}</span>
+
+{% if current_user.is_admin() %}
+<a class="bottom-right-icon" onclick="event.stopPropagation(); toggleVisibilityById('users-for-lesson-{{ lesson.id }}');">
+    <img src="{{ url_for('static', filename='person.svg') }}">
+</a>
+<div id="users-for-lesson-{{ lesson.id }}" class="popup" style="visibility: hidden;">
+    <span>Uporabniki prijavljeni na uro</span>
+    <br />
+    {% for user in lesson.get_users(user_db) %}
+    <span>&bull; {{ user.username }}</span>
+    <br />
+    {% endfor %}
+
+    <button class="popup-form-button text-button" style="left: 15px; top: 15px;" onclick="event.stopPropagation(); toggleVisibilityById('users-for-lesson-{{ lesson.id }}');">Zapri</button>
+</div>
+{% endif %}
