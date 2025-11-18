@@ -319,7 +319,9 @@ def requestAdmin(*, context):
 @login_required
 @admin_required
 def run_update(*, context):
-    os.system('update.sh')
+    os.system('/update.sh')
+
+    return redirect(safe_redirect(request.referrer))
 
 @views.route('/admin-panel', methods=['GET', 'POST'])
 @login_required
