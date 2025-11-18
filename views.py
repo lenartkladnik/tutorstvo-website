@@ -315,6 +315,12 @@ def requestAdmin(*, context):
 
     return render_template("admin.html", current_user=current_user(context), mobile=is_mobile(request), form=form)
 
+@views.route('/run-update')
+@login_required
+@admin_required
+def run_update(*, context):
+    os.system('update.sh')
+
 @views.route('/admin-panel', methods=['GET', 'POST'])
 @login_required
 @admin_required
