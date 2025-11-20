@@ -457,6 +457,7 @@ def modify_user(*, context, id):
     is_admin = form.get('is-admin', 'off')
     year = form.get('year', None)
     tutor_for = list(set(form.getlist('tutor-for')))
+    score = form.get('points', None)
 
     if is_admin == 'on':
         set_admin(user)
@@ -468,6 +469,9 @@ def modify_user(*, context, id):
         user.groups = year
 
     set_tutor(user, tutor_for)
+
+    if score:
+        user.score = score
 
     db.session.commit()
 
@@ -732,7 +736,7 @@ def tutorstvo(*, context):
     free_classrooms = str(free_classrooms).replace("'", '"')
 
     for lesson in Lesson.query.all():
-        if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1):
+        if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1) and not lesson.has_passed():
             for tutor in lesson.get_tutors():
                 tutor_user = User.query.filter_by(username=tutor).first()
                 if tutor_user:

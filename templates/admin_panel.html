@@ -47,6 +47,17 @@
             {% endfor %}
         </div>
 
+        {% if managed_user.is_tutor() %}
+        <br />
+        <br />
+
+        <span>Točke:</span>
+        <div class="points">
+            <input type="number" min="0" id="points-opt" name="points" required value="{{ managed_user.score }}">
+        </div>
+        {% endif %}
+
+        <br />
         <br />
 
         <span>Posebne funkcije:</span>
