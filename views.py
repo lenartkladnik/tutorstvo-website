@@ -965,6 +965,9 @@ def removeLesson(*, context, id):
         return redirect(safe_redirect(request.referrer))
 
     if lesson.subject in subjects:
+        for user in lesson.get_users():
+            user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
+
         db.session.delete(lesson)
 
         db.session.commit()
