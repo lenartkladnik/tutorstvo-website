@@ -852,7 +852,7 @@ def tutorstvo(*, context):
         if startDate.weekday() > 4:
             startDate = startDate + timedelta(days=abs(startDate.weekday() - 7))
 
-        days_ = nextWeekDates(startDate, 1) # [(days[startDate.weekday()], f"{startDate.day}. {months[startDate.month]}"), days[startDate.weekday()]]
+        days_ = [[[days[startDate.weekday()], f"{startDate.day} {months[startDate.month]}"]]]
         startNext = [
                         (startDate - timedelta(days=1) if (startDate - timedelta(days=1)).weekday() <= 4 else startDate - timedelta(days=3)).strftime(DATETIME_FORMAT_PY),
                         (startDate + timedelta(days=1) if startDate.weekday() + 1 <= 4 else startDate + timedelta(days=3)).strftime(DATETIME_FORMAT_PY)
