@@ -428,6 +428,8 @@ def adminPanel(*, context):
 
     all_potential_tutors = [user for user in User.query.all() if user.applied_subjects]
 
+    tutors_zip = list(zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors))
+
     return render_template("admin_panel.html",
                            current_user=current_user(context),
                            mobile=is_mobile(request),
@@ -437,7 +439,7 @@ def adminPanel(*, context):
                            tutor_manage_id=tutor_manage_id,
                            remove_user_id=remove_user_id,
                            manage_user_id=manage_user_id,
-                           tutors=zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors),
+                           tutors=tutors_zip, tutors_len=len(tutors_zip),
                            subjects=subjects,
                            subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids,
                            formatTitle=formatTitle, zip=zip, set=set,

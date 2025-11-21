@@ -218,9 +218,9 @@
         </div>
 
         <div class="sub-panel">
-          <h1>Tutorji ({{ len(list(tutors)) }})</h1>
+          <h1>Tutorji ({{ tutors_len }})</h1>
             <div class="sub-container">
-                {% for subjects_, tutor in tutors %}
+                {% for subjects_, tutor in list(tutors) %}
                   <form id="tutor-manage-form-{{ tutor.id }}" method="POST">
                         <input type="hidden" name="tutor_manage_id" value="{{ tutor.id }}">
                     </form>
