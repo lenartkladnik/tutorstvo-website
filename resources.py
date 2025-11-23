@@ -6,6 +6,7 @@ from functools import wraps
 from flask import abort, url_for, Request
 import math
 from urllib.parse import urlparse
+import traceback
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
@@ -128,6 +129,7 @@ def validate_form_reason(form: Any, *checks: tuple[str, Callable], getter: str |
 
         except Exception as e:
             log(f"Form validation failed on function: '{func.__name__}' with args: '{args}' ({name}) and exception: '{e}'.", "resources.validate_form")
+            log(f"Form validation exception: {traceback.format_exc()}", "resources.validate_form")
             return (False, (name, args))
 
     return (True,)
@@ -171,7 +173,7 @@ def get_leaderboard(User, Subject):
 
     return lb
 
-def get_free_for_date(date: datetime, schedule: list, hour):
+def get_free_for_date(hour): # (date: datetime, schedule: list, hour):
     # ["knj", "m3", "r3", "r4", "vp", "mp", "s3", "k2", "r2", "f1", "mf", "k1", "n2", "b1", "b2", "m1", "m2", "r1", "ge", "zg", "a1", "a2", "n1", "s1", "rač", "knj", "msv", "mpk", "mdž"]
 
     if hour == "PRE" or hour == "O" or hour == "PO":
@@ -179,40 +181,42 @@ def get_free_for_date(date: datetime, schedule: list, hour):
 
     hour = int(hour)
 
-    slovenian_days = [
-        "Nedelja",
-        "Ponedeljek", 
-        "Torek",
-        "Sreda",
-        "Četrtek",
-        "Petek",
-        "Sobota"
-    ]
+    # slovenian_days = [
+    #     "Nedelja",
+    #     "Ponedeljek", 
+    #     "Torek",
+    #     "Sreda",
+    #     "Četrtek",
+    #     "Petek",
+    #     "Sobota"
+    # ]
 
-    school_year_start = datetime(date.year, 9, 1)
-    if date < school_year_start:
-        school_year_start = datetime(school_year_start.year - 1, 9, 1)
+    # school_year_start = datetime(date.year, 9, 1)
+    # if date < school_year_start:
+    #     school_year_start = datetime(school_year_start.year - 1, 9, 1)
 
-    ms_per_week = 7 * 24 * 60 * 60 * 1000
-    week_diff = math.floor((date - school_year_start).total_seconds() * 1000 / ms_per_week)
+    # ms_per_week = 7 * 24 * 60 * 60 * 1000
+    # week_diff = math.floor((date - school_year_start).total_seconds() * 1000 / ms_per_week)
 
-    week_type = "A" if week_diff % 2 == 0 else "B"
-    day_name = slovenian_days[date.weekday() + 1 if date.weekday() < 6 else 0]
+    # week_type = "A" if week_diff % 2 == 0 else "B"
+    # day_name = slovenian_days[date.weekday() + 1 if date.weekday() < 6 else 0]
 
-    indices = []
-    for i, entry in enumerate(schedule):
-        if entry[0] == week_type and entry[1] == day_name:
-            indices.append(i)
+    # indices = []
+    # for i, entry in enumerate(schedule):
+    #     if entry[0] == week_type and entry[1] == day_name:
+    #        indices.append(i)
 
-    free = schedule[indices[hour]].copy()
-    if not free:
-        return classroom_data["ALWAYS"] + classroom_data[str(hour)]
+    # free = schedule[indices[hour]].copy()
+    # if not free:
+    #     return classroom_data["ALWAYS"] + classroom_data[str(hour)]
 
-    free.append(classroom_data["ALWAYS"] + classroom_data[str(hour)])
-    free[3] = [*free[3], *free[4]]
-    free.pop()
+    # free.append(classroom_data["ALWAYS"] + classroom_data[str(hour)])
+    # free[3] = [*free[3], *free[4]]
+    # free.pop()
 
-    return list(filter(None, free[3]))
+    # return list(filter(None, free[3]))
+
+    return list(filter(None, classroom_data["ALWAYS"] + classroom_data[str(hour)]))
 
 def parse_hour(time_str):
     periods = [

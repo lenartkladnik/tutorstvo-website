@@ -179,7 +179,7 @@
 
         <textarea class="description" name="description" rows="3" cols="160" maxlength="60" style="resize: none;" placeholder="Opis" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>
         <p class="counter"><span id="description-char-count">0</span>/60</p>
-        <a class="dropdown-arrow" id="tutors-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi ostale tutorje  ';" onclick="toggleVisibilityById('tutors-select-top'); toggleVisibilityByClassName('lesson-form-bottom-button'); this.classList.toggle('open'); updateTutorsSelect();"></a>
+        <a class="dropdown-arrow" id="tutors-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi ostale tutorje  ';" onclick="toggleVisibilityById('tutors-select-top'); toggleVisibilityByClassName('lesson-form-bottom-button'); this.classList.toggle('open');"></a>
         <div class="tutors-select" id="tutors-select-top" style="visibility: hidden;">
             <div id="tutor-container">
                 <input type="hidden" id="selected-tutors" name="tutors"></input>
@@ -189,6 +189,12 @@
                     function setTutorAddOptions() {
                         var subject = document.getElementById('subject-selector').value;
                         var tutors_select = document.getElementById('tutors-select-container');
+
+                        if (!subject) {
+                            tutors_select.innerHTML = '<span style="width: max-content;">Izberi predmet, da lahko vidiš ostale tutorje.</span>';
+                            return;
+                        }
+
                         var all_tutors = {{ all_tutors | safe }};
                         var tutors = all_tutors[subject];
 
@@ -196,6 +202,7 @@
 
                         if (tutors.length == 0) {
                             tutors_select.innerHTML = '<span style="width: max-content;">Za ta predmet ni ostalih tutorjev.</span>';
+                            return;
                         }
 
                         for (let i = 0; i < tutors.length; i++) {
@@ -251,7 +258,7 @@
             </div>
         </div>
 
-        <a class="dropdown-arrow" id="years-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi letnike  ';" onclick="toggleVisibilityById('years-select-top'); toggleVisibilityByClassName('lesson-form-bottom-button'); this.classList.toggle('open'); updateYearsSelect();"></a>
+        <a class="dropdown-arrow" id="years-select-dropdown-arrow" style="--dropdown-arrow-prefix: 'Izberi letnike  ';" onclick="toggleVisibilityById('years-select-top'); toggleVisibilityByClassName('lesson-form-bottom-button'); this.classList.toggle('open');"></a>
         <div class="years-select" id="years-select-top" style="visibility: hidden;">
             <div id="years-container">
                 <input type="hidden" id="selected-years" name="groups"></input>

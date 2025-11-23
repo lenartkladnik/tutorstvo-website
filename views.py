@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 import csv
 import random
 import re
+import json
 
 views = Blueprint('views', __name__)
 
@@ -263,7 +264,7 @@ def new_lesson_debug():
     new_lesson = Lesson(
             groups="y2",
             subject="Matematika",
-            classroom="knj",
+            classroom="msv",
             min="1",
             max="2",
             datetime=f"{datetime.now().year}/{datetime.now().day + 1}/{datetime.now().month} 00:00",
@@ -761,7 +762,8 @@ def tutorstvo(*, context):
                       ('groups', lambda x: not any([i not in current_user(context).tutoring_years() for i in x.split(',')]) and x),
                       ('title', lambda x: Subject.query.filter_by(name = x).first() != None),
                       ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.now() and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
-                      ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
+                      # ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
+                      ('classroom', lambda x: x in get_free_for_date(parse_hour(form['datetime'].split(' ')[1]))),
                       ('tutors', lambda x: (current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first())) and any([User.query.filter_by(username=y).first().is_tutor_for(Subject.query.filter_by(name=form['title']).first()) for y in x.split(', ')]) if x else True),
                       ('datetime', lambda x: (not any(i.subject.lower() == form['title'].lower() for i in Lesson.query.filter_by(datetime=x)))),
                       ('tutors', lambda _: (not any(any(j in ([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', ')) for j in i.get_tutors()) for i in Lesson.query.filter_by(datetime=form['datetime'])))),
@@ -967,7 +969,7 @@ def removeLesson(*, context, id):
         return redirect(safe_redirect(request.referrer))
 
     if lesson.subject in subjects:
-        for user in lesson.get_users():
+        for user in lesson.get_users(User):
             user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
 
         db.session.delete(lesson)

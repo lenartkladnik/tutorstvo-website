@@ -263,6 +263,9 @@ for (let i = 0; i < add_subject.length; i++){
     add_subject[i].addEventListener("click", function(event) {
         event.preventDefault();
 
+        updateYearsSelect();
+        updateTutorsSelect();
+
         let element = document.getElementsByClassName("add-subject-form")[0];
         element.style.display = "grid";
         element.style.visibility = "visible";
