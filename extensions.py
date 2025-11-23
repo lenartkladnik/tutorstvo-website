@@ -18,9 +18,9 @@ mail = Mail(app)
 db = SQLAlchemy(app)
 cache = Cache(app)
 
-from models import User, Subject, Lesson, Group, LessonRequest # Needed because of db creation ->
-                                                               # SQLAlchemy won't create the db
-                                                               # tables if they aren't imported
+from models import User, Subject, Lesson, Group, LessonRequest, Stats # Needed because of db creation ->
+                                                                      # SQLAlchemy won't create the db
+                                                                      # tables if they aren't imported
 
 with app.app_context():
     db.create_all()

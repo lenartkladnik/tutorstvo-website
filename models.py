@@ -1,6 +1,8 @@
+from typing import Any
+import json
 from extensions import db
 from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_USER, is_lesson_removable, ALLOWED_GROUPS, HUMAN_READABLE_GROUPS
-from datetime import datetime, time, timedelta, timezone
+from datetime import datetime, timedelta, timezone
 
 class Subject(db.Model):
     __tablename__ = 'subjects'
@@ -236,3 +238,19 @@ class Comment(db.Model):
             created_at = created_at.replace(tzinfo=timezone.utc)
 
         return created_at < datetime.now(timezone.utc) - timedelta(days=7)
+
+class Stats(db.Model):
+    __tablename__ = 'stats'
+
+    year = db.Column(db.String(10), primary_key=True, nullable=False, default=str(datetime.now().year))
+    name = db.Column(db.Text, nullable=False)
+    value = db.Column(db.Text, nullable=False, default="")
+
+    def set(self, value: Any):
+        self.value = json.dumps(value)
+
+    def get(self):
+        if self.value:
+            return json.loads(self.value)
+
+        return {}

@@ -1,17 +1,18 @@
 import os
+from collections import defaultdict
+from wtforms.validators import data_required
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
 from werkzeug.security import check_password_hash
 from forms import AdminForm
 from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
-from models import Comment, LessonRequest, User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, formatTitle, get_leaderboard, is_mobile, is_tablet, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
+from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
 import random
 import re
-import json
 
 views = Blueprint('views', __name__)
 
@@ -92,6 +93,22 @@ def getEmails(usernames: list[str]) -> list[str]:
 
 # def isAllowedFile(filename):
 #     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def ensure_stats(name: str):
+    if not Stats.query.filter_by(name=name).first():
+        new_stat = Stats(
+            name=name,
+        )
+        db.session.add(new_stat)
+        db.session.commit()
+
+def plus_n_stats(name: str, key: str, n: int):
+    stat = Stats.query.filter_by(name=name).first()
+    data = defaultdict(int, stat.get())
+    data[key] += n
+    stat.set(dict(data))
+
+    db.session.commit()
 
 def set_tutor(user: str | User, subjects: list[str]):
     if isinstance(user, str):
@@ -207,12 +224,19 @@ def login_required(func):
 
         today = datetime.today()
         if not user.updated_year and today.month == 9 and today.day == 1:
+            ensure_stats(StatTypes.best_tutors)
+            stat = Stats.query.filter_by(name=StatTypes.best_tutors).first()
+            stat.value.set(list(get_leaderboard(User, Subject))[:10])
+            stat.year = f"{datetime.now().year - 1}/{datetime.now().year}"
+
             full_year = user.get_year()
             if len(full_year) > 1 and full_year[1].isdigit():
                 y = int(full_year[1]) + 1
                 if y <= 4:
                     user.groups = f'y{y}'
                 user.updated_year = True
+
+            user.points = 0
 
             db.session.commit()
 
@@ -744,6 +768,10 @@ def tutorstvo(*, context):
                 tutor_user = User.query.filter_by(username=tutor).first()
                 if tutor_user:
                     tutor_user.score += lesson.filled
+
+            ensure_stats(StatTypes.attendees)
+            plus_n_stats(StatTypes.attendees, lesson.subject.lower(), lesson.filled)
+
             lesson.set_passed()
 
         if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=7):
@@ -787,6 +815,9 @@ def tutorstvo(*, context):
             tutors=', '.join([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', '))
         )
         db.session.add(new_lesson)
+
+        ensure_stats(StatTypes.lessons_created)
+        plus_n_stats(StatTypes.lessons_created, form['title'].lower(), 1)
 
         db.session.commit()
 
@@ -972,6 +1003,9 @@ def removeLesson(*, context, id):
         for user in lesson.get_users(User):
             user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
 
+        ensure_stats(StatTypes.lessons_created)
+        plus_n_stats(StatTypes.lessons_created, lesson.subject.lower(), -1)
+
         db.session.delete(lesson)
 
         db.session.commit()
@@ -1079,11 +1113,19 @@ def new_issue(*, context):
         return redirect(safe_redirect(request.referrer))
 
     users = [User.query.filter_by(username=i).first() if i != '/' else '' for i in request.form.getlist('users[]')]
+
+    ensure_stats(StatTypes.reported_users)
+    stat = Stats.query.filter_by(name=StatTypes.reported_users)
+
     exists = False
     for user in users:
         if user:
             user.issues += 1
             exists = True
+
+            data = defaultdict(lambda: defaultdict(int), {k: defaultdict(int, v) for k, v in stat.get().items()})
+            data[Lesson.query.filter_by(id=request.form['id']).first().subject.lower()][user.username] += 1
+            stat.set({k: dict(v) for k, v in data.items()})
 
     if exists:
         db.session.delete(Lesson.query.filter_by(id=request.form['id']).first())
@@ -1110,6 +1152,9 @@ def request_lesson(*, context):
                 lesson_request=lesson_request,
                 by=current_user(context).username
             )
+
+            ensure_stats(StatTypes.lesson_requests)
+            plus_n_stats(StatTypes.lesson_requests, request.form['subject'], 1)
 
             db.session.add(new_comment)
             db.session.commit()
