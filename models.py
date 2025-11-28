@@ -242,7 +242,8 @@ class Comment(db.Model):
 class Stats(db.Model):
     __tablename__ = 'stats'
 
-    year = db.Column(db.String(10), primary_key=True, nullable=False, default=str(datetime.now().year))
+    id = db.Column(db.Integer, primary_key=True)
+    year = db.Column(db.String(10), nullable=False, default=str(datetime.now().year))
     name = db.Column(db.Text, nullable=False)
     value = db.Column(db.Text, nullable=False, default="")
 

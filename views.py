@@ -523,6 +523,35 @@ def modify_tutor(*, context, id):
 
     return redirect(url_for('views.adminPanel'))
 
+@views.route('/modify-lesson/<int:id>')
+@login_required
+@admin_required
+def modify_lesson(*, context, id):
+    lesson = Lesson.query.filter_by(id=id).first()
+
+    return f"""{lesson.id=}
+    <br />
+    {lesson.groups=}
+    <br />
+    {lesson.subject=}
+    <br />
+    {lesson.classroom=}
+    <br />
+    {lesson.min=}
+    <br />
+    {lesson.max=}
+    <br />
+    {lesson.datetime=}
+    <br />
+    {lesson.description=}
+    <br />
+    {lesson.filled=}
+    <br />
+    {lesson.tutors=}
+    <br />
+    {lesson.passed=}
+    <br />"""
+
 @views.route('/remove-user/<int:id>')
 @login_required
 @admin_required
@@ -841,6 +870,11 @@ def tutorstvo(*, context):
 
     elif not startDate or startDate == '':
         startDate = datetime.today() + timedelta(days=1)
+
+        if startDate.weekday() > 4:
+            startDate += timedelta(days=startDate.weekday() - 3)
+
+        print(startDate)
 
     else:
         startDate = datetime.strptime(startDate, DATETIME_FORMAT_PY)
