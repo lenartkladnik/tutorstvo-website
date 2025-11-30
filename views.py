@@ -1,7 +1,6 @@
 import os
 from collections import defaultdict
-from wtforms.validators import data_required
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g
 from werkzeug.security import check_password_hash
 from forms import AdminForm
 from extensions import db, mail, auth
@@ -190,6 +189,8 @@ def fake_login(func):
 
         current_user({'user': { 'name': name, 'preferred_username': email}})
 
+        g.context = {'user': {'name': name, 'preferred_username': email}}
+
         return func(*args, context={'user': {'name': name, 'preferred_username': email}}, **kwargs)
 
     return wrapper
@@ -210,6 +211,7 @@ def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         context = kwargs.get('context')
+        g.context = context
         user = current_user(context)
         if user.is_rejected() and user.rejection_expired():
             user.accept()
@@ -300,6 +302,11 @@ def new_lesson_debug():
     db.session.commit()
 
     return redirect(url_for('views.tutorstvo'))
+
+@views.route('/cause_exc')
+@debug_only
+def cause_exc():
+    raise RuntimeError("Example exception.")
 
 @views.route('/')
 @login_required
