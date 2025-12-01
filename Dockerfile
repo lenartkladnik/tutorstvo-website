@@ -49,7 +49,4 @@ EXPOSE 5000
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-COPY update.sh /update.sh
-RUN chmod +x /update.sh
-
 ENTRYPOINT ["/entrypoint.sh"]

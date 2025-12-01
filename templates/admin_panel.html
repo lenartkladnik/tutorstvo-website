@@ -320,6 +320,79 @@
 
         </div>
 
+        <div class="sub-panel">
+            <h1>[Stats] Št ur</h1>
+
+            <br />
+
+            {% for i in Stats.query.filter_by(name=StatTypes.lessons_created).order_by(Stats.year.desc()) %}
+            <span>{{ i.year }}:</span>
+            <br />
+            {% set obj = jloads(i.value) %}
+            {% for j in obj %}
+            <span>{{ j }}: {{ obj[j] }}</span>
+            <br />
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="sub-panel">
+            <h1>[Stats] Prijave na ure</h1>
+            <br />
+
+            {% for i in Stats.query.filter_by(name=StatTypes.attendees).order_by(Stats.year.desc()) %}
+            <span>{{ i.year }}:</span>
+            <br />
+            {% set obj = jloads(i.value) %}
+            {% for j in obj %}
+            <span>{{ j }}: {{ obj[j] }}</span>
+            <br />
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="sub-panel">
+            <h1>[Stats] Prošnje za ure</h1>
+            <br />
+
+            {% for i in Stats.query.filter_by(name=StatTypes.lesson_requests).order_by(Stats.year.desc()) %}
+            <span>{{ i.year }}:</span>
+            <br />
+            {% set obj = jloads(i.value) %}
+            {% for j in obj %}
+            <span>{{ j }}: {{ obj[j] }}</span>
+            <br />
+            {% endfor %}
+            {% endfor %}
+        </div>
+
+        <div class="sub-panel">
+            <h1>[Stats] Najboljši tutorji</h1>
+            <br />
+
+            {% for i in Stats.query.filter_by(name=StatTypes.best_tutors).order_by(Stats.year.desc()) %}
+            <span>{{ i.year }}:</span>
+            <br />
+            <span>{{ i.value }}</span>
+            <br />
+            {% endfor %}
+        </div>
+
+        <div class="sub-panel">
+            <h1>[Stats] Ne prisotnost na urah</h1>
+            <br />
+
+            {% for i in Stats.query.filter_by(name=StatTypes.reported_users).order_by(Stats.year.desc()) %}
+            <span>{{ i.year }}:</span>
+            <br />
+            {% set obj = jloads(i.value) %}
+            {% for j in obj %}
+            <span>{{ j }}: {{ obj[j] }}</span>
+            <br />
+            {% endfor %}
+            {% endfor %}
+        </div>
+
     </div>
 
     <div style="margin: 20px 20px;">

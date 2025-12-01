@@ -12,6 +12,7 @@ from datetime import datetime, timedelta
 import csv
 import random
 import re
+import json
 
 views = Blueprint('views', __name__)
 
@@ -347,14 +348,6 @@ def requestAdmin(*, context):
 
     return render_template("admin.html", current_user=current_user(context), mobile=is_mobile(request), form=form)
 
-@views.route('/run-update')
-@login_required
-@admin_required
-def run_update(*, context):
-    os.system('/update.sh')
-
-    return redirect(safe_redirect(request.referrer))
-
 @views.route('/admin-panel', methods=['GET', 'POST'])
 @login_required
 @admin_required
@@ -475,7 +468,7 @@ def adminPanel(*, context):
                            subjects=subjects,
                            subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids,
                            formatTitle=formatTitle, zip=zip, set=set,
-                           list=list)
+                           list=list, Stats=Stats, StatTypes=StatTypes, jloads=json.loads)
 
 @views.route('/modify-user/<int:id>', methods=['POST'])
 @login_required
