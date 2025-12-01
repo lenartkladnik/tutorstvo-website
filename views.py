@@ -846,7 +846,7 @@ def tutorstvo(*, context):
         if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1) and not lesson.has_passed():
             for tutor in lesson.get_tutors():
                 tutor_user = User.query.filter_by(username=tutor).first()
-                if tutor_user:
+                if tutor_user and lesson.filled >= lesson.min:
                     tutor_user.score += lesson.filled
 
             ensure_stats(StatTypes.attendees)
