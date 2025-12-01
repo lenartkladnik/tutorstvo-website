@@ -988,7 +988,7 @@ def selectLesson(*, context, id):
 
         db.session.commit()
 
-        return redirect(url_for('views.tutorstvo'))
+        return redirect(url_for('views.home'))
 
     return redirect(safe_redirect(request.referrer))
 
@@ -1002,6 +1002,7 @@ def deselectLesson(*, context, id):
         return redirect(safe_redirect(request.referrer))
 
     if lesson:
+        print(selected)
         if str(id) in selected:
             current_user(context).selected_subjects = ','.join(set(selected) - set(str(id)))
 
@@ -1017,7 +1018,7 @@ def deselectLesson(*, context, id):
 
             db.session.commit()
 
-        return redirect(url_for('views.tutorstvo'))
+        return redirect(url_for('views.home'))
 
     return redirect(safe_redirect(request.referrer))
 
