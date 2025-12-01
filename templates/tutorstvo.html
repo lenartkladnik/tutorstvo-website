@@ -89,12 +89,13 @@
                 {% if lesson %}
                 {% set tracker.was_lesson = True %}
                 <div class="subject-box" onclick="{{ '' if lesson.filled >= lesson.max or lesson.has_passed() else 'window.location.href=\'tutorstvo/add/' + str(lesson.id) + '\'' }}" style="cursor: {{ 'pointer' if not lesson.has_passed() else 'default' }};">
-                    {% if lesson.subject in subjects %}
                     {% if current_user.is_admin() %}
-                        <a href="modify-lesson/{{ lesson.id }}" class="remove-lesson">
+                        <a href="modify-lesson/{{ lesson.id }}" class="icon-left remove-lesson">
                             <img src="{{ url_for('static', filename='more.svg' )}}">
                         </a>
-                    {% else %}
+                    {% endif %}
+
+                    {% if lesson.subject in subjects %}
                     {% if not lesson.has_passed() and lesson.is_removable() %}
                         <a href="remove-lesson/{{ lesson.id }}" class="remove-lesson">
                             <img src="{{ url_for('static', filename='remove.svg') }}">
@@ -123,7 +124,6 @@
                         <a href="#" onclick="showElementById('lesson-{{ lesson.id }}-issues');" class="issue-lesson">
                             <img src="{{ url_for('static', filename='issue.svg') }}">
                         </a>
-                    {% endif %}
                     {% endif %}
                     {% else %}
                     <img title="{{ expl }}" src="{{ url_for('static', filename='info.svg') }}" class="info-icon">

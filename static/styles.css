@@ -698,6 +698,10 @@ li:has(> .sidebar-selected) {
     transform: translateX(8px);
 }
 
+.subject-box .icon-left {
+    left: -12px;
+}
+
 .description {
     color: var(--description-color);
     font-size: 16px;
