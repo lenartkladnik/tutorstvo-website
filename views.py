@@ -1002,9 +1002,8 @@ def deselectLesson(*, context, id):
         return redirect(safe_redirect(request.referrer))
 
     if lesson:
-        print(selected)
         if str(id) in selected:
-            current_user(context).selected_subjects = ','.join(set(selected) - set(str(id)))
+            current_user(context).selected_subjects = ','.join(set(selected) - {str(id),})
 
             lesson.filled -= 1
 
