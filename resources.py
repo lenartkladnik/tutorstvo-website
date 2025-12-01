@@ -6,6 +6,7 @@ from functools import wraps
 from flask import abort, url_for, Request
 from urllib.parse import urlparse
 import traceback
+import re
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
@@ -268,3 +269,6 @@ def is_mobile(request: Request) -> bool:
         return True
 
     return False
+
+def isnumber(x):
+    return re.match("-?[0-9]+([.][0-9]+)?$", x) is not None

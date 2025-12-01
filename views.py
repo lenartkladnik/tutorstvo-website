@@ -1,5 +1,7 @@
 import os
 from collections import defaultdict
+
+from wtforms.validators import url
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g
 from werkzeug.security import check_password_hash
 from forms import AdminForm
@@ -7,7 +9,7 @@ from extensions import db, mail, auth
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
 from datetime import datetime, timedelta
 import csv
 import random
@@ -523,34 +525,83 @@ def modify_tutor(*, context, id):
 
     return redirect(url_for('views.adminPanel'))
 
-@views.route('/modify-lesson/<int:id>')
+@views.route('/modify-lesson/<int:id>', methods=["GET", "POST"])
 @login_required
 @admin_required
 def modify_lesson(*, context, id):
     lesson = Lesson.query.filter_by(id=id).first()
 
-    return f"""{lesson.id=}
+    if request.form:
+        if request.form.get("auto-fix-filled", None):
+            lesson.filled = len(lesson.get_users(User))
+
+        else:
+            groups = request.form.get("groups", None)
+            subject = request.form.get("subject", None)
+            classroom = request.form.get("classroom", None)
+            min_ = request.form.get("min", None)
+            max_ = request.form.get("max", None)
+            datetime_ = request.form.get("datetime", None)
+            description = request.form.get("description", None)
+            filled = request.form.get("filled", None)
+            tutors = request.form.get("tutors", None)
+            passed = request.form.get("passed", None)
+
+            if min_ and isnumber(min_): min_ = int(min_)
+            else: min_ = None
+
+            if max_ and isnumber(max_): max_ = int(max_)
+            else: max_ = None
+
+            if filled and isnumber(filled): filled = int(filled)
+            else: filled = None
+
+            if passed and isnumber(passed): passed = int(passed)
+            else: passed = None
+
+            if groups != None: lesson.groups = groups
+            if subject != None: lesson.subject = subject
+            if classroom != None: lesson.classroom = classroom
+            if min_ != None: lesson.min = min_
+            if max_ != None: lesson.max = max_
+            if datetime_ != None: lesson.datetime = datetime_
+            if description != None: lesson.description = description
+            if filled != None: lesson.filled = filled
+            if tutors != None: lesson.tutors = tutors
+            if passed != None: lesson.passed = passed
+
+        db.session.commit()
+
+        return redirect(url_for("views.tutorstvo"))
+
+    return f"""<a href="/tutorstvo">Nazaj</a>
+    <form method="POST" style="margin: 0;">
+    <span>id: {lesson.id}</span>
     <br />
-    {lesson.groups=}
+    <span>groups=</span><input name="groups" type="text" value="{lesson.groups}" />
     <br />
-    {lesson.subject=}
+    <span>subject=</span><input name="subject" type="text" value="{lesson.subject}" />
     <br />
-    {lesson.classroom=}
+    <span>classroom=</span><input name="classroom" type="text" value="{lesson.classroom}" />
     <br />
-    {lesson.min=}
+    <span>min=</span><input type="text" name="min" value="{lesson.min}" />
     <br />
-    {lesson.max=}
+    <span>max=</span><input type="text" name="max" value="{lesson.max}" />
     <br />
-    {lesson.datetime=}
+    <span>datetime=</span><input type="text" name="datetime" value="{lesson.datetime}" />
     <br />
-    {lesson.description=}
+    <span>description=</span><input type="text" name="description" value="{lesson.description}" />
     <br />
-    {lesson.filled=}
+    <span>filled=</span><input type="text" name="filled" value="{lesson.filled}" />
+    <input type="submit" name="auto-fix-filled" value="Auto fix filled" />
     <br />
-    {lesson.tutors=}
+    <span>tutors=</span><input type="text" name="tutors" value="{lesson.tutors}" />
     <br />
-    {lesson.passed=}
-    <br />"""
+    <span>passed=</span><input type="text" name="passed" value="{lesson.passed}" />
+    <br />
+
+    <input type="submit" value="Modify" />
+    </form>"""
 
 @views.route('/remove-user/<int:id>')
 @login_required
