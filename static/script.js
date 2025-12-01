@@ -701,3 +701,11 @@ function addSwipeListener(element, func) {
     checkDirection(element, func);
   })
 }
+
+// Ensure popups respect fixed positioning
+const main = document.querySelector('.main');
+const popups = document.querySelectorAll('.popup');
+
+popups.forEach(popup => {
+  main.parentNode.insertBefore(popup, main);
+});
