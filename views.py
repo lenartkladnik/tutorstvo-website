@@ -988,7 +988,7 @@ def selectLesson(*, context, id):
 
         db.session.commit()
 
-        return redirect(url_for('views.home'))
+        return redirect(url_for('views.tutorstvo'))
 
     return redirect(safe_redirect(request.referrer))
 
@@ -1002,21 +1002,22 @@ def deselectLesson(*, context, id):
         return redirect(safe_redirect(request.referrer))
 
     if lesson:
-        current_user(context).selected_subjects = ','.join(set(selected) - set(str(id)))
+        if str(id) in selected:
+            current_user(context).selected_subjects = ','.join(set(selected) - set(str(id)))
 
-        lesson.filled -= 1
+            lesson.filled -= 1
 
-        if lesson.filled == lesson.min - 1:
-            addr = list(filter(None, getEmails(lesson.get_tutors())))
+            if lesson.filled == lesson.min - 1:
+                addr = list(filter(None, getEmails(lesson.get_tutors())))
 
-            if addr:
-                sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,
+                if addr:
+                    sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,
 
-        Za predmet {lesson.subject} je število učencev spet padlo pod minimalno mejo. To pomeni da se ura ne bo odvijala.""", f'Tutorstvo - {lesson.subject}')
+            Za predmet {lesson.subject} je število učencev spet padlo pod minimalno mejo. To pomeni da se ura ne bo odvijala.""", f'Tutorstvo - {lesson.subject}')
 
-        db.session.commit()
+            db.session.commit()
 
-        return redirect(url_for('views.home'))
+        return redirect(url_for('views.tutorstvo'))
 
     return redirect(safe_redirect(request.referrer))
 
