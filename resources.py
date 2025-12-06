@@ -276,7 +276,8 @@ def is_mobile(request: Request) -> bool:
     return False
 
 def isnumber(x):
-    if len(x) > 1000:
-        raise ValueError("isnumber: Input too long")
-
-    return re.match("-?[0-9]+([.][0-9]+)?$", x) is not None
+    try:
+        float(x)
+        return True
+    except:
+        return False
