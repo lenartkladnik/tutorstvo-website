@@ -1,11 +1,9 @@
 import os
 from collections import defaultdict
-
-from wtforms.validators import url
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g
 from werkzeug.security import check_password_hash
 from forms import AdminForm
-from extensions import db, mail, auth
+from extensions import db, mail, auth, scheduler
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group
@@ -205,6 +203,26 @@ def login(func):
     else:
         return fake_login(func)
 
+def update_all_years():
+    ensure_stats(StatTypes.best_tutors)
+    stat = Stats.query.filter_by(name=StatTypes.best_tutors).first()
+    stat.value.set(list(get_leaderboard(User, Subject))[:10])
+    stat.year = f"{datetime.now().year - 1}/{datetime.now().year}"
+
+    for user in User.query.all():
+        full_year = user.get_year()
+        if len(full_year) > 1 and full_year[1].isdigit():
+            y = int(full_year[1]) + 1
+            if y <= 4:
+                user.groups = f'y{y}'
+            user.updated_year = True
+
+        user.points = 0
+
+    db.session.commit()
+
+scheduler.add_job(update_all_years, trigger='cron', year='*', month=9, day=1, week='*', day_of_week='*', hour=0, minute=0, second=0)
+
 def login_required(func):
     """
     Rename auth.login_required to login_required and add debug functionality.
@@ -226,29 +244,6 @@ def login_required(func):
                 db.session.commit()
 
             return render_template("forbidden.html", current_user=user)
-
-        today = datetime.today()
-        if not user.updated_year and today.month == 9 and today.day == 1:
-            ensure_stats(StatTypes.best_tutors)
-            stat = Stats.query.filter_by(name=StatTypes.best_tutors).first()
-            stat.value.set(list(get_leaderboard(User, Subject))[:10])
-            stat.year = f"{datetime.now().year - 1}/{datetime.now().year}"
-
-            full_year = user.get_year()
-            if len(full_year) > 1 and full_year[1].isdigit():
-                y = int(full_year[1]) + 1
-                if y <= 4:
-                    user.groups = f'y{y}'
-                user.updated_year = True
-
-            user.points = 0
-
-            db.session.commit()
-
-        if user.updated_year and today.month == 9 and today.day == 2:
-            user.updated_year = False
-
-            db.session.commit()
 
         return func(*args, **kwargs)
 

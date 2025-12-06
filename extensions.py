@@ -6,10 +6,12 @@ from identity.flask import Auth
 from flask_migrate import Migrate
 import app_config
 from resources import log
+from apscheduler.schedulers.background import BackgroundScheduler
 
 log("Setting up configuration.", "extensions")
 
 app = Flask(__name__)
+scheduler = BackgroundScheduler()
 
 app.config.from_object(app_config)
 app.jinja_env.add_extension('jinja2.ext.do')
