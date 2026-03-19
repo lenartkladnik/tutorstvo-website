@@ -384,11 +384,13 @@
 
             {% for i in Stats.query.filter_by(name=StatTypes.reported_users).order_by(Stats.year.desc()) %}
             <span>{{ i.year }}:</span>
+            {% if i.value %}
             <br />
             {% set obj = jloads(i.value) %}
             {% for j in obj %}
             <span>{{ j }}: {{ obj[j] }}</span>
             <br />
+            {% endif %}
             {% endfor %}
             {% endfor %}
         </div>
