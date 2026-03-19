@@ -850,6 +850,11 @@ def tutorstvo(*, context):
             lesson.set_passed()
 
         if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=7):
+            # Lesson has been created 7 or more days ago -> delete it to ensure the db doesn't get trashed with a bunch of lessons
+
+            for user in lesson.get_users(User):
+                user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
+
             db.session.delete(lesson)
 
         db.session.commit()
@@ -1048,7 +1053,7 @@ def deselectLesson(*, context, id):
         return redirect(safe_redirect(request.referrer))
 
     if lesson:
-        if str(id) in selected:
+        if str(id) in set(selected):
             current_user(context).selected_subjects = ','.join(set(selected) - {str(id),})
 
             lesson.filled -= 1
