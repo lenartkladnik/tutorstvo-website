@@ -1875,6 +1875,8 @@ input.description {
     left: 100%;
 
     transform: translate(-100%, -4px);
+
+    filter: invert(var(--invert));
 }
 
 .request-lesson-button {
