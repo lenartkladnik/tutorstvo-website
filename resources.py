@@ -6,7 +6,6 @@ from functools import wraps
 from flask import abort, url_for, Request
 from urllib.parse import urlparse
 import traceback
-import re
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'

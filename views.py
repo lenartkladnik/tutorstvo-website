@@ -249,6 +249,23 @@ def login_required(func):
 
     return login(wrapper)
 
+# Maintenance routes
+
+@views.route('/maintenance/reset_selected_subjects')
+@login_required
+@admin_required
+def reset_selected_subjects():
+    log("Reseting selected subjects for all users.", "views.reset_selected_subjects", 'MAINTENANCE')
+
+    for user in User.query.all():
+        user.selected_subjects = ''
+
+    db.session.commit()
+
+    return 'Success'
+
+# Debug routes
+
 @views.route('/new_user')
 @debug_only
 def new_user_debug():
@@ -305,6 +322,8 @@ def new_lesson_debug():
 @debug_only
 def cause_exc():
     raise RuntimeError("Example exception.")
+
+# Normal routes
 
 @views.route('/')
 @login_required
