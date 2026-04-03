@@ -71,9 +71,9 @@
             <div id="{{ lesson_request.subject }}-lesson-data" class="request-lesson-data" style="visibility: hidden;">
                 {% for comment in lesson_request.comments %}
                 {% if comment.content.strip() %}
-                <span>&bull; {{ comment.content.strip().rsplit(', ')[0] }}</span>
+                <span>&bull; {{ comment.content.strip().rsplit(', ', 1)[0] }}</span>
                 <br>
-                <span class="extra-info">{{ comment.by + ', ' if current_user.is_admin else '' }}{{ comment.content.strip().rsplit(', ')[1] }}</span>
+                <span class="extra-info">{{ comment.by + ', ' if current_user.is_admin else '' }}{{ comment.content.strip().rsplit(', ', 1)[1] }}</span>
                 <form action="/remove-lesson-request/{{ comment.id }}">
                     <input type="image" src="{{ url_for('static', filename='trash.svg') }}">
                 </form>
