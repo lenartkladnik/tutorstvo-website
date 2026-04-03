@@ -862,6 +862,7 @@ input.description {
     background-color: transparent;
     border: none;
     padding: 4px;
+    width: calc(100% - 8px);
 }
 
 .add-subject-form textarea {
@@ -1851,6 +1852,29 @@ input.description {
 
     min-height: 8px;
     height: fit-content;
+}
+
+.extra-info {
+    position: relative;
+    display: block;
+
+    width: fit-content;
+    height: fit-content;
+
+    left: 100%;
+    transform: translateX(calc(-100% - 10px));
+
+    color: var(--light-text-color);
+}
+
+.request-lesson-data input[type="image"] {
+    all: unset;
+    position: absolute;
+
+    top: 0;
+    left: 100%;
+
+    transform: translate(-100%, -4px);
 }
 
 .request-lesson-button {

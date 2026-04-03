@@ -22,8 +22,9 @@
             </div>
 
             <div>
-                <input name="comment" type="text" class="description" maxlength="34" placeholder="Snov, komentarji, ipd." />
-                <span>, {{ current_user.human_readable_year() }}</span>
+                <input name="comment" type="text" class="description" maxlength="30" placeholder="Snov, komentarji, ipd." />
+                <br>
+                <span class="extra-info">{{ current_user.human_readable_year() }}</span>
             </div>
 
         </div>
@@ -70,8 +71,12 @@
             <div id="{{ lesson_request.subject }}-lesson-data" class="request-lesson-data" style="visibility: hidden;">
                 {% for comment in lesson_request.comments %}
                 {% if comment.content.strip() %}
-                <span>&bull; {{ comment.content.strip() }}</span>
+                <span>&bull; {{ comment.content.strip().rsplit(', ')[0] }}</span>
                 <br>
+                <span class="extra-info">{{ comment.by + ', ' if current_user.is_admin else '' }}{{ comment.content.strip().rsplit(', ')[1] }}</span>
+                <form action="/remove-lesson-request/{{ comment.id }}">
+                    <input type="image" src="{{ url_for('static', filename='trash.svg') }}">
+                </form>
                 {% endif %}
                 {% endfor %}
             </div>

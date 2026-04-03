@@ -292,7 +292,7 @@ def send_email_debug():
 @views.route('/score/<int:sc>/<int:id>')
 @debug_only
 def score_debug(sc, id):
-    user = User.query.filter_by(id=id).first()
+    user = User.query.get(id)
     if user:
         user.score = sc
         db.session.commit()
@@ -492,7 +492,7 @@ def adminPanel(*, context):
 def modify_user(*, context, id):
     form = request.form # Treated as safe since only authorized users can access this
 
-    user = User.query.filter_by(id=id).first()
+    user = User.query.get(id)
 
     if not user:
         return redirect(url_for('views.adminPanel'))
@@ -526,7 +526,7 @@ def modify_user(*, context, id):
 def modify_tutor(*, context, id):
     form = request.form # Treated as safe since only authorized users can access this
 
-    user = User.query.filter_by(id=id).first()
+    user = User.query.get(id)
 
     if not user:
         return redirect(url_for('views.adminPanel'))
@@ -543,7 +543,7 @@ def modify_tutor(*, context, id):
 @login_required
 @admin_required
 def modify_lesson(*, context, id):
-    lesson = Lesson.query.filter_by(id=id).first()
+    lesson = Lesson.query.get(id)
 
     if request.form:
         if request.form.get("auto-fix-filled", None):
@@ -622,7 +622,7 @@ def modify_lesson(*, context, id):
 @admin_required
 def remove_user(*, context, id):
     # Treated as safe since only authorized users can access this
-    user = User.query.filter_by(id=id).first()
+    user = User.query.get(id)
 
     if not user:
         return redirect(safe_redirect(request.referrer))
@@ -687,7 +687,7 @@ def addGroup(*, context):
 @admin_required
 def removeGroup(*, context, id):
     # Treated as safe since only authorized users can access this
-    group = Group.query.filter_by(id=id).first()
+    group = Group.query.get(id)
     db.session.delete(group)
 
     db.session.commit()
@@ -739,7 +739,7 @@ def addRole(*, context, role):
 @admin_required
 def removeRole(*, context, role, id):
     # Treated as safe since only authorized users can access this
-    user = User.query.filter_by(id=id).first()
+    user = User.query.get(id)
 
     if not user:
         return redirect(safe_redirect(request.referrer))
@@ -1041,7 +1041,7 @@ def tutorstvo(*, context):
 @views.route('/tutorstvo/add/<int:id>')
 @login_required
 def selectLesson(*, context, id):
-    lesson = Lesson.query.filter_by(id=id).first()
+    lesson = Lesson.query.get(id)
 
     if lesson and not (current_user(context).username in lesson.get_tutors()) and not (lesson.filled >= lesson.max):
         current_user(context).selected_subjects = ','.join(set(current_user(context).getSelectedSubjects() + [str(id)]))
@@ -1065,7 +1065,7 @@ def selectLesson(*, context, id):
 @views.route('/tutorstvo/remove/<int:id>')
 @login_required
 def deselectLesson(*, context, id):
-    lesson = Lesson.query.filter_by(id=id).first()
+    lesson = Lesson.query.get(id)
     selected = current_user(context).getSelectedSubjects()
 
     if not lesson.is_removable():
@@ -1095,7 +1095,7 @@ def deselectLesson(*, context, id):
 @login_required
 @tutor_required
 def removeLesson(*, context, id):
-    lesson = Lesson.query.filter_by(id=id).first()
+    lesson = Lesson.query.get(id)
     if not lesson.is_removable():
         return redirect(safe_redirect(request.referrer))
 
@@ -1272,6 +1272,18 @@ def request_lesson(*, context):
     db.session.commit()
 
     return render_template('request_lesson.html', current_user=current_user(context), mobile=is_mobile(request), subjects=Subject.query.all(), lesson_request_db=LessonRequest)
+
+@views.route('/remove-lesson-request/<int:id>')
+@login_required
+def remove_lesson_request(*, context, id):
+    comment = Comment.query.get(id)
+    user = current_user(context)
+
+    if comment and (comment.by == user.username):
+        db.session.delete(comment)
+        db.session.commit()
+
+    return redirect(safe_redirect(request.referrer))
 
 @views.route("/faq")
 @login_required
