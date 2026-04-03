@@ -1283,7 +1283,7 @@ def remove_lesson_request(*, context, id):
         db.session.delete(comment)
         db.session.commit()
 
-    return redirect(safe_redirect(request.referrer))
+    return redirect(url_for('views.request-lesson'))
 
 @views.route("/faq")
 @login_required
