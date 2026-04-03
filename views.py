@@ -254,7 +254,7 @@ def login_required(func):
 @views.route('/maintenance/reset_selected_subjects')
 @login_required
 @admin_required
-def reset_selected_subjects():
+def reset_selected_subjects(*, context):
     log("Reseting selected subjects for all users.", "views.reset_selected_subjects", 'MAINTENANCE')
 
     for user in User.query.all():
