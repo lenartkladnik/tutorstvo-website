@@ -13,6 +13,6 @@
     "@mariusbongarts/previewbox": "^0.0.24"
   },
   "devDependencies": {
-    "parcel": "^2.14.4"
+    "parcel": "^2.16.4"
   }
 }
