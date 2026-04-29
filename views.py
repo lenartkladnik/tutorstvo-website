@@ -48,6 +48,13 @@ BECOME_A_TUTOR_MESSAGES = [
     "Tutorstvo = korak k tvoji prihodnosti - Razvij vodstvene veščine, pridobi izkušnje in pomagaj sošolcem.",
     "Mali koraki, velike spremembe - Že z eno uro na teden lahko pomagaš nekomu do boljših ocen"
 ]
+CLASSROOM_EXPLANATION = [
+    "MSV - Miza pri stranskem vhodu",
+    "MPK - Miza pri knjižnici",
+    "MDŽ - Miza dežurnega učenca",
+    "DSP - Dijaška soba pri plesni dvorani",
+    "IZV - Izven šole (lokacija mora biti podana v opisu ure)"
+]
 URL_REGEX = r"https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)"
 
 def sendEmail(subject: str = '', recipients: list[str] | None = None, content: str = '', heading: str = ''):
@@ -857,7 +864,7 @@ def tutorstvo(*, context):
     free_classrooms = str(free_classrooms).replace("'", '"')
 
     for lesson in Lesson.query.all():
-        if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1) and not lesson.has_passed():
+        if lesson.has_passed() and not lesson.has_counted():
             for tutor in lesson.get_tutors():
                 tutor_user = User.query.filter_by(username=tutor).first()
                 if tutor_user and lesson.filled >= lesson.min:
@@ -866,9 +873,9 @@ def tutorstvo(*, context):
             ensure_stats(StatTypes.attendees)
             plus_n_stats(StatTypes.attendees, lesson.subject.lower(), lesson.filled)
 
-            lesson.set_passed()
+            lesson.set_counted()
 
-        if datetime.strptime(lesson.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=7):
+        if lesson.has_expired():
             # Lesson has been created 7 or more days ago -> delete it to ensure the db doesn't get trashed with a bunch of lessons
 
             for user in lesson.get_users(User):
@@ -888,19 +895,16 @@ def tutorstvo(*, context):
                       ('max', lambda x: str(x).isdigit()),
                       ('groups', lambda x: not any([i not in current_user(context).tutoring_years() for i in x.split(',')]) and x),
                       ('title', lambda x: Subject.query.filter_by(name = x).first() != None),
-                      ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.now() and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
+                      ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.today() - timedelta(days=1) and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
                       # ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
                       ('classroom', lambda x: x in get_free_for_date(parse_hour(form['datetime'].split(' ')[1]))),
                       ('tutors', lambda x: (current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first())) and any([User.query.filter_by(username=y).first().is_tutor_for(Subject.query.filter_by(name=form['title']).first()) for y in x.split(', ')]) if x else True),
-                      ('datetime', lambda x: (not any(i.subject.lower() == form['title'].lower() for i in Lesson.query.filter_by(datetime=x)))),
                       ('tutors', lambda _: (not any(any(j in ([current_user(context).username] + (form['tutors'].split(', ') if form['tutors'] else []) if current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first()) else form['tutors'].split(', ')) for j in i.get_tutors()) for i in Lesson.query.filter_by(datetime=form['datetime'])))),
-                      ('classroom', lambda x: (not any(i.classroom == x for i in Lesson.query.filter_by(datetime=form['datetime'])))),
+                      ('classroom', lambda x: (not any(i.classroom == x for i in Lesson.query.filter_by(datetime=form['datetime']) if i.classroom.lower() != "izv"))),
                         )
 
-        if not validation_result[0]:
-            return redirect(safe_redirect(request.referrer))
-
-        if int(form['min']) > int(form['max']):
+        if not validation_result[0] or \
+           int(form['min']) > int(form['max']):
             return redirect(safe_redirect(request.referrer))
 
         new_lesson = Lesson(
@@ -1023,7 +1027,7 @@ def tutorstvo(*, context):
     if FORM_VALIDATION_OFF:
         has_passed = lambda _: False
     else:
-        has_passed = lambda date: datetime.strptime(date.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=1)
+        has_passed = lambda date: datetime.strptime(date.split(' ')[0], DATETIME_FORMAT_JS) <= datetime.today() + timedelta(days=1)
 
     return render_template('tutorstvo.html',
                            current_user=current_user(context), mobile=mobile,
@@ -1036,14 +1040,18 @@ def tutorstvo(*, context):
                            classroom_data=classroom_data,
                            lesson_creation_error=lesson_creation_error,
                            human_readable_groups=HUMAN_READABLE_GROUPS,
-                           has_passed=has_passed, tablet=tablet)
+                           has_passed=has_passed, tablet=tablet, expl="\n".join(CLASSROOM_EXPLANATION))
 
 @views.route('/tutorstvo/add/<int:id>')
 @login_required
 def selectLesson(*, context, id):
     lesson = Lesson.query.get(id)
 
-    if lesson and not (current_user(context).username in lesson.get_tutors()) and not (lesson.filled >= lesson.max):
+    if lesson and \
+       not (current_user(context).username in lesson.get_tutors()) and \
+       not (lesson.filled >= lesson.max) and \
+       not lesson.has_passed():
+
         current_user(context).selected_subjects = ','.join(set(current_user(context).getSelectedSubjects() + [str(id)]))
 
         lesson.filled += 1
@@ -1099,12 +1107,10 @@ def removeLesson(*, context, id):
     if not lesson.is_removable():
         return redirect(safe_redirect(request.referrer))
 
-    subjects = current_user(context).subjects(Subject)
-
-    if not lesson or not subjects:
+    if not lesson:
         return redirect(safe_redirect(request.referrer))
 
-    if lesson.subject in subjects:
+    if current_user(context).username in lesson.get_tutors():
         for user in lesson.get_users(User):
             user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
 
@@ -1288,4 +1294,4 @@ def remove_lesson_request(*, context, id):
 @views.route("/faq")
 @login_required
 def faq(*, context):
-    return render_template("faq.html", current_user=current_user(context), mobile=is_mobile(request))
+    return render_template("faq.html", current_user=current_user(context), mobile=is_mobile(request), expl="<br />".join(CLASSROOM_EXPLANATION))

@@ -7,7 +7,7 @@
 
 {% block content %}
 
-{% set expl = "MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca\nDSP - Dijaška soba pri plesni dvorani" %}
+{% set expl = "MSV - Miza pri stranskem vhodu\nMPK - Miza pri knjižnici\nMDŽ - Miza dežurnega učenca\nDSP - Dijaška soba pri plesni dvorani\nIZV - Izven šole (lokacija mora biti podana v opisu ure)" %}
 
 {% if not mobile and not tablet %}
 <div class="main center">
@@ -95,7 +95,7 @@
                         </a>
                     {% endif %}
 
-                    {% if lesson.subject in subjects %}
+                    {% if current_user.username in lesson.get_tutors() %}
                     {% if not lesson.has_passed() and lesson.is_removable() %}
                         <a href="remove-lesson/{{ lesson.id }}" class="remove-lesson">
                             <img src="{{ url_for('static', filename='remove.svg') }}">

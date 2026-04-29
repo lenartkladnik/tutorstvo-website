@@ -1,7 +1,7 @@
 from typing import Any
 import json
 from extensions import db
-from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_USER, is_lesson_removable, ALLOWED_GROUPS, HUMAN_READABLE_GROUPS
+from resources import get_leaderboard, DATETIME_FORMAT_PY, DATETIME_FORMAT_JS, DATETIME_FORMAT_USER, is_lesson_removable, ALLOWED_GROUPS, HUMAN_READABLE_GROUPS
 from datetime import datetime, timedelta, timezone
 
 class Subject(db.Model):
@@ -154,15 +154,21 @@ class Lesson(db.Model):
     description = db.Column(db.String(200), nullable=False)
     filled = db.Column(db.Integer, default=0)
     tutors = db.Column(db.String(1000), default='', nullable=False)
-    passed = db.Column(db.Integer, default=-1)
+    passed = db.Column(db.Integer, default=-1) # used by has_counted, set_counted
 
     def has_passed(self) -> bool:
-        return self.passed == 1
+        return datetime.today() > datetime.strptime(self.datetime.split(' ')[0], DATETIME_FORMAT_JS) - timedelta(days=1)
 
     def is_removable(self) -> bool:
         return is_lesson_removable(self)
 
-    def set_passed(self):
+    def has_expired(self) -> bool:
+        return datetime.strptime(self.datetime.split(' ')[0], DATETIME_FORMAT_JS) < datetime.today() - timedelta(days=7)
+
+    def has_counted(self) -> bool:
+        return self.passed == 1
+
+    def set_counted(self) -> None:
         self.passed = 1
 
     def get_groups(self) -> list:
@@ -171,8 +177,6 @@ class Lesson(db.Model):
         return groups_str.split(',')
 
     def human_readable_groups(self) -> str:
-        # return ', '.join([HUMAN_READABLE_GROUPS[i] for i in self.get_groups()])
-
         string_list = []
 
         for y in self.get_groups():

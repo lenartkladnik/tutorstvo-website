@@ -858,6 +858,18 @@ li:has(> .sidebar-selected) {
     all: unset;
 }
 
+.request-lesson-box-grid .note {
+    position: absolute;
+
+    top: 100%;
+    transform: translateY(-110%);
+
+    font-size: 7.5pt;
+    width: 100%;
+    text-align: center;
+    color: gray;
+}
+
 input.description {
     background-color: transparent;
     border: none;

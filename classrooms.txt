@@ -1,4 +1,4 @@
-ALWAYS:msv,mpk,mdž
+ALWAYS:msv,mpk,mdž,izv
 PRE:
 O:
 6:

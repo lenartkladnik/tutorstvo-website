@@ -150,7 +150,9 @@ def validate_form(form: Any, *checks: tuple[str, Callable], getter: str | None =
 
 def debug_only(func):
     """
-    Run the function only if the app is running in debug mode.
+    wrapper
+
+        Run the function only if the app is running in debug mode.
     """
 
     @wraps(func)
@@ -242,7 +244,7 @@ def parse_hour(time_str):
         if time_str.strip() == period['start'].strip():
             return period['label']
 
-    return None
+    return 'PO'
 
 def safe_redirect(target: str):
     if not target:
