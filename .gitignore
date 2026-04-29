@@ -4,6 +4,8 @@
 **/flask_session
 **/instance
 **/__pycache__/
+**/node_modules/
+**/.parcel-cache/
 **/tests
 **/TODO.txt
 **/logs
