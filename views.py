@@ -903,7 +903,7 @@ def tutorstvo(*, context):
                       ('max', lambda x: str(x).isdigit()),
                       ('groups', lambda x: not any([i not in current_user(context).tutoring_years() for i in x.split(',')]) and x),
                       ('title', lambda x: Subject.query.filter_by(name = x).first() != None),
-                      ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.today() - timedelta(days=1) and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
+                      ('datetime', lambda x: datetime.strptime(x.split(' ')[0], DATETIME_FORMAT_JS) >= datetime.today() and any([y[1] == x.split(' ')[1] for y in side]) if x else True),
                       # ('classroom', lambda x: x in get_free_for_date(datetime.strptime(form['datetime'].split(' ')[0], DATETIME_FORMAT_JS), list(free_classrooms), parse_hour(form['datetime'].split(' ')[1]))),
                       ('classroom', lambda x: x in get_free_for_date(parse_hour(form['datetime'].split(' ')[1]))),
                       ('tutors', lambda x: (current_user(context).is_tutor_for(Subject.query.filter_by(name=form['title']).first())) and any([User.query.filter_by(username=y).first().is_tutor_for(Subject.query.filter_by(name=form['title']).first()) for y in x.split(', ')]) if x else True),
@@ -1035,7 +1035,7 @@ def tutorstvo(*, context):
     if FORM_VALIDATION_OFF:
         has_passed = lambda _: False
     else:
-        has_passed = lambda date: datetime.strptime(date.split(' ')[0], DATETIME_FORMAT_JS) <= datetime.today() + timedelta(days=1)
+        has_passed = lambda date: datetime.strptime(date.split(' ')[0], DATETIME_FORMAT_JS) <= datetime.today()
 
     return render_template('tutorstvo.html',
                            current_user=current_user(context), mobile=mobile,

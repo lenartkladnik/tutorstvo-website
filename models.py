@@ -157,7 +157,7 @@ class Lesson(db.Model):
     passed = db.Column(db.Integer, default=-1) # used by has_counted, set_counted
 
     def has_passed(self) -> bool:
-        return datetime.today() > datetime.strptime(self.datetime.split(' ')[0], DATETIME_FORMAT_JS) - timedelta(days=1)
+        return datetime.today() > datetime.strptime(self.datetime.split(' ')[0], DATETIME_FORMAT_JS)
 
     def is_removable(self) -> bool:
         return is_lesson_removable(self)
