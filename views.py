@@ -864,24 +864,32 @@ def tutorstvo(*, context):
     free_classrooms = str(free_classrooms).replace("'", '"')
 
     for lesson in Lesson.query.all():
-        if lesson.has_passed() and not lesson.has_counted():
-            for tutor in lesson.get_tutors():
-                tutor_user = User.query.filter_by(username=tutor).first()
-                if tutor_user and lesson.filled >= lesson.min:
-                    tutor_user.score += lesson.filled
+        try:
+            if lesson.has_passed() and not lesson.has_counted():
+                for tutor in lesson.get_tutors():
+                    tutor_user = User.query.filter_by(username=tutor).first()
+                    if tutor_user and lesson.filled >= lesson.min:
+                        tutor_user.score += lesson.filled
 
-            ensure_stats(StatTypes.attendees)
-            plus_n_stats(StatTypes.attendees, lesson.subject.lower(), lesson.filled)
+                ensure_stats(StatTypes.attendees)
+                plus_n_stats(StatTypes.attendees, lesson.subject.lower(), lesson.filled)
 
-            lesson.set_counted()
+                lesson.set_counted()
 
-        if lesson.has_expired():
-            # Lesson has been created 7 or more days ago -> delete it to ensure the db doesn't get trashed with a bunch of lessons
+            if lesson.has_expired():
+                # Lesson has been created 7 or more days ago -> delete it to ensure the db doesn't get trashed with a bunch of lessons
 
-            for user in lesson.get_users(User):
-                user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
+                for user in lesson.get_users(User):
+                    user.selected_subjects = ','.join(set(user.getSelectedSubjects()) - set(str(lesson.id)))
+
+                db.session.delete(lesson)
+
+        except Exception as e:
+            print(f"Failed to load lesson with id '{lesson.id}', with exception: '{e}'")
+            print(f"Removing corrupted lesson ('{lesson.id}')")
 
             db.session.delete(lesson)
+
 
         db.session.commit()
 
