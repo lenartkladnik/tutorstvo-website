@@ -1,10 +1,11 @@
 from flask import render_template, render_template_string, g
 from waitress import serve
 from extensions import app, scheduler
-from resources import log, DEBUG, FORM_VALIDATION_OFF, secrets
+from resources import log, DEBUG, FORM_VALIDATION_OFF, secrets, exceptions_dict
 from views import current_user, login_required
 import traceback
 import sys
+import hashlib
 
 try:
     if __name__ == "__main__":
@@ -30,6 +31,11 @@ try:
             exc_type, exc_value, exc_tb = sys.exc_info()
             tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
+            digest = hashlib.sha256(tb.encode()).hexdigest().upper()
+            code = f"{digest[:4]}-{digest[4:8]}-{digest[8:12]}" # 12 characters -> 16^12 options
+
+            exceptions_dict.update({code: tb})
+
             log(f"Exception occured: {tb}", "handle_exception", "error")
 
             try:
@@ -38,7 +44,7 @@ try:
             except: # This will trigger if g doesn't have a context attribute
                 pass
 
-            return render_template("500.html"), 500
+            return render_template("500.html", code=code), 500
 
         host = "0.0.0.0"
 

@@ -316,6 +316,10 @@ select:invalid {
     z-index: 1000;
 }
 
+.note {
+    color: gray;
+}
+
 .form h2 {
     text-align: center;
     color: var(--form-heading);

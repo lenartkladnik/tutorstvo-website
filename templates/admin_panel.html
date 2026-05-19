@@ -321,6 +321,18 @@
         </div>
 
         <div class="sub-panel">
+            <h1>Napake</h1>
+
+            <div style="position: relative;">
+                <input type="text" id='exception-search' placeholder="Koda" maxlength="12" />
+            </div>
+
+            <input type="hidden" id='all-exceptions' value='{{ exceptions | tojson }}'>
+
+            <div class="usersContainer sub-container" id="exception-container"></div>
+        </div>
+
+        <div class="sub-panel">
             <h1>[Stats] Št ur</h1>
 
             <br />
@@ -428,11 +440,11 @@
         });
     }
 
-    function updateSearchUsers() {
-        const container = document.getElementById('users-container');
+    function getMatches(container_id, search_id, all_id, ignore_empty) {
+        const container = document.getElementById(container_id);
         container.innerHTML = '';
-        const search = document.getElementById('users-search').value;
-        const all = JSON.parse(document.getElementById('all-users').value);
+        const search = document.getElementById(search_id).value;
+        const all = JSON.parse(document.getElementById(all_id).value);
 
         let match = {};
 
@@ -443,8 +455,14 @@
                 }
             }
         } else {
-            match = all;
+            if (!ignore_empty) { match = all; }
         }
+
+        return match;
+    }
+
+    function updateSearchUsers() {
+        let match = getMatches('users-container', 'users-search', 'all-users', false);
 
         for (let i in match) {
             createUserField(i, match[i]);
@@ -452,26 +470,19 @@
     }
 
     function updateSearchPotentialTutors() {
-        const container = document.getElementById('potential-tutors-container');
-        container.innerHTML = '';
-        const search = document.getElementById('potential-tutors-search').value;
-        const all = JSON.parse(document.getElementById('all-potential-tutors').value);
+        let match = getMatches('potential-tutors-container', 'potential-tutors-search', 'all-potential-tutors', false);
         const applied_subjects = JSON.parse(document.getElementById('applied-for').value);
-
-        let match = {};
-
-        if (search) {
-            for (let i in all) {
-                if (all[i].toLowerCase().startsWith(search.toLowerCase())) {
-                    match[i] = all[i];
-                }
-            }
-        } else {
-            match = all;
-        }
 
         for (let i in match) {
             createPotentialTutorField(i, match[i], applied_subjects[i]);
+        }
+    }
+
+    function updateSearchException() {
+        let match = getMatches('exception-container', 'exception-search', 'all-exceptions', true);
+
+        for (let i in match) {
+            createExceptionField(i, match[i]);
         }
     }
 
@@ -590,11 +601,27 @@
         document.getElementById(container).appendChild(subDiv);
     }
 
+    function createExceptionField(tb) {
+        const container = "exception-container";
+        const subDiv = document.createElement("div");
+        subDiv.className = "sub";
+
+        const pre = document.createElement("pre");
+        pre.textContent = tb;
+
+        subDiv.appendChild(pre);
+
+        document.getElementById(container).appendChild(subDiv);
+    }
+
+
     document.addEventListener('DOMContentLoaded', function () {
         updateSearchUsers();
         updateSearchPotentialTutors();
+        updateSearchException();
         document.getElementById('users-search').addEventListener("input", updateSearchUsers);
         document.getElementById('potential-tutors-search').addEventListener("input", updateSearchPotentialTutors);
+        document.getElementById('exception-search').addEventListener("input", updateSearchException);
     });
 </script>
 {% endblock %}

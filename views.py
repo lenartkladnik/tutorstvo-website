@@ -7,7 +7,7 @@ from extensions import db, mail, auth, scheduler
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data, exceptions_dict
 from datetime import datetime, timedelta
 import csv
 import random
@@ -488,7 +488,7 @@ def adminPanel(*, context):
                            remove_user_id=remove_user_id,
                            manage_user_id=manage_user_id,
                            tutors=tutors_zip, tutors_len=len(tutors_zip),
-                           subjects=subjects,
+                           subjects=subjects, exceptions={exc[1] : exc[0] for exc in exceptions_dict.items()},
                            subject_names=[s.name for s in subjects], groups=groups, group_ids=group_ids,
                            formatTitle=formatTitle, zip=zip, set=set,
                            list=list, Stats=Stats, StatTypes=StatTypes, jloads=json.loads)

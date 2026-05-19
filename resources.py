@@ -14,6 +14,8 @@ DATETIME_FORMAT_USER = '%d/%m/%Y'
 ALLOWED_GROUPS = ['y1', 'y2', 'y3', 'y4']
 HUMAN_READABLE_GROUPS = {'y1': '1. Letnik', 'y2': '2. Letnik', 'y3': '3. Letnik', 'y4': '4. Letnik'}
 
+exceptions_dict = {}
+
 class StatTypes:
     lessons_created: str = 'lessons_created'
     attendees: str = 'attendees'
