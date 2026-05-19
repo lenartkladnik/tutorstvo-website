@@ -1231,10 +1231,10 @@ def new_issue(*, context):
                          ):
         return redirect(safe_redirect(request.referrer))
 
-    users = [User.query.filter_by(username=i).first() if i != '/' else '' for i in request.form.getlist('users[]')]
+    users = [User.query.filter_by(username=i).first() if i != '/' else None for i in request.form.getlist('users[]')]
 
     ensure_stats(StatTypes.reported_users)
-    stat = Stats.query.filter_by(name=StatTypes.reported_users)
+    stat = Stats.query.filter_by(name=StatTypes.reported_users).first()
 
     exists = False
     for user in users:
