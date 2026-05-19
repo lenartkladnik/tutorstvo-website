@@ -27,11 +27,16 @@ try:
         def handle_exception(e):
             login_required(lambda *, context: context)() # Hacky way to get context into g.context
 
-            if g.context and current_user(g.context).is_admin():
-                exc_type, exc_value, exc_tb = sys.exc_info()
-                tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
+            exc_type, exc_value, exc_tb = sys.exc_info()
+            tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_tb))
 
-                return render_template_string("""<h1>Exception Occurred</h1>\n<pre>{{ tb }}</pre>""", tb=tb), 500
+            log(f"Exception occured: {tb}", "handle_exception", "error")
+
+            try:
+                if g.context and current_user(g.context).is_admin():
+                    return render_template_string("""<h1>Exception Occurred</h1>\n<pre>{{ tb }}</pre>""", tb=tb), 500
+            except: # This will trigger if g doesn't have a context attribute
+                pass
 
             return render_template("500.html"), 500
 
