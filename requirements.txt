@@ -33,7 +33,7 @@ multidict==6.7.1
 propcache==0.5.2
 py-vapid==1.9.4
 pycparser==3.0
-PyJWT==2.12.1
+PyJWT==2.13.0
 pywebpush==2.4.0
 redis==7.3.0
 requests==2.33.0
