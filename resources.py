@@ -6,6 +6,8 @@ from functools import wraps
 from flask import abort, url_for, Request
 from urllib.parse import urlparse
 import traceback
+from pywebpush import webpush
+import json
 
 DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
@@ -284,3 +286,17 @@ def isnumber(x):
         return True
     except:
         return False
+
+def send_notification(subscription, title: str, body: str) -> bool:
+    try:
+        webpush(
+            subscription_info=subscription.subscription_json,
+            data=json.dumps({"title": title, "body": body}),
+            vapid_private_key="private_key.pem",
+            vapid_claims={"sub": "mailto:tutorstvo@sentvid.org"}
+        )
+    except Exception as e:
+        log("Push failed: " + repr(e), 'send_notification')
+        return False
+
+    return True

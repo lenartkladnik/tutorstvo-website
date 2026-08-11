@@ -27,7 +27,7 @@
 
                 <input type="hidden" value="y1" name="group" id="selectedGroup" required>
                 <div style="height: 15px;"></div>
-                <button type="submit" class="option-button">Potrdi</button>
+                <button type="submit" onclick="subscribeToNotifications();" class="option-button">Potrdi</button> <!-- After clicking the submit button ask the user to subscribe to notifications -->
             </form>
         </div>
         <script>
@@ -47,6 +47,10 @@
             <div class="topbar-right">
                 <a href="toggle-dark-mode" class="button">
                     <img src="{{ url_for('static', filename='dark_mode.svg') }}" id="toggle-dark-mode" class="icon noInvert">
+                </a>
+
+                <a onclick="{{ 'subscribeToNotifications();' if not current_user.has_notifications() else 'unsubscribeFromNotifications();' }}" class="button">
+                    <img src="{{ url_for('static', filename='notifications_off.svg') if not current_user.has_notifications() else url_for('static', filename='notifications_on.svg') }}" id="toggle-notifications" class="icon noInvert">
                 </a>
 
                 <a href="logout" class="button">

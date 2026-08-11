@@ -709,3 +709,33 @@ const popups = document.querySelectorAll('.popup');
 popups.forEach(popup => {
   main.parentNode.insertBefore(popup, main);
 });
+
+// Subscribe user to notifications
+async function subscribeToNotifications() {
+  const reg = await navigator.serviceWorker.register('/static/sw.js');
+  const res = await fetch('/vapid-public-key');
+  const { publicKey } = await res.json();
+
+  const subscription = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: publicKey
+  });
+
+  await fetch('/subscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(subscription)
+  });
+
+  window.location.reload();
+}
+
+async function unsubscribeFromNotifications() {
+  await fetch('/unsubscribe', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: {}
+  });
+
+  window.location.reload();
+}

@@ -36,6 +36,9 @@ class User(db.Model):
     issues = db.Column(db.Integer, default=0)
     updated_year = db.Column(db.Boolean, nullable=True)
 
+    def has_notifications(self) -> bool:
+        return db.session.query(PushSubscription.query.filter_by(user_id=self.id).exists()).scalar()
+
     def is_rejected(self) -> bool:
         return self.rejected == 1
 
@@ -193,6 +196,9 @@ class Lesson(db.Model):
     def get_tutors(self) -> list:
         return list(filter(None, self.tutors.split(', ')))
 
+    def get_tutor_objs(self) -> list:
+        return [User.query.filter_by(username=name).first() for name in self.get_tutors()]
+
     def get_users(self, user_db) -> list:
         users = []
         for user in user_db.query.filter_by():
@@ -259,3 +265,14 @@ class Stats(db.Model):
             return json.loads(self.value)
 
         return {}
+
+class PushSubscription(db.Model):
+    __tablename__ = "push_subscriptions"
+
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
+    endpoint = db.Column(db.String(500), unique=True, nullable=False)
+    subscription_json = db.Column(db.JSON, nullable=False)
+    created_at = db.Column(db.DateTime, server_default=db.func.now())
+
+    user = db.relationship("User", backref="push_subscriptions")

@@ -7,3 +7,4 @@ services:
       - 5000:5000
     volumes:
       - .:/app
+      - ./keys:/app/keys:ro

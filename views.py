@@ -1,13 +1,14 @@
 import os
 from collections import defaultdict
-from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g
+from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g, jsonify
 from werkzeug.security import check_password_hash
 from forms import AdminForm
 from extensions import db, mail, auth, scheduler
 from flask_mail import Message
 from functools import wraps
-from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data, exceptions_dict
+from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group, PushSubscription
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, send_notification, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data, exceptions_dict
+from app_config import PUBLIC_KEY
 from datetime import datetime, timedelta
 import csv
 import random
@@ -330,12 +331,54 @@ def new_lesson_debug():
 def cause_exc():
     raise RuntimeError("Example exception.")
 
+@views.route('/test_push')
+@debug_only
+def test_push_notifications():
+    for user in User.query.all():
+        subs = PushSubscription.query.filter_by(user_id=user.id).all()
+        for sub in subs:
+            send_notification(sub, "Title", "test")
+
+    return redirect(url_for('views.home'))
+
 # Normal routes
 
 @views.route('/')
 @login_required
 def index(*, context):
     return redirect(url_for('views.home'))
+
+@views.route('/vapid-public-key')
+@login_required
+def vapid_public_key(*, context):
+    return jsonify({"publicKey": PUBLIC_KEY})
+
+@views.route("/subscribe", methods=["POST"])
+@login_required
+def subscribe(*, context):
+    sub = request.get_json()
+
+    existing = PushSubscription.query.filter_by(endpoint=sub["endpoint"]).first()
+    if existing:
+        return "Exists", 200
+
+    new_sub = PushSubscription(
+        user_id=current_user(context).id,
+        endpoint=sub["endpoint"],
+        subscription_json=sub
+    )
+    db.session.add(new_sub)
+    db.session.commit()
+
+    return "", 201
+
+@views.route("/unsubscribe", methods=["POST"])
+@login_required
+def unsubscribe(*, context):
+    PushSubscription.query.filter_by(user_id=current_user(context).id).delete()
+    db.session.commit()
+
+    return "", 201
 
 @views.route('/toggle-dark-mode')
 @login_required
@@ -553,7 +596,11 @@ def modify_lesson(*, context, id):
     lesson = Lesson.query.get(id)
 
     if request.form:
-        if request.form.get("auto-fix-filled", None):
+        if request.form.get("confirm-deletion", None):
+            if request.form.get("confirm-deletion") == "izbriši":
+                Lesson.query.filter_by(id=id).delete()
+
+        elif request.form.get("auto-fix-filled", None):
             lesson.filled = len(lesson.get_users(User))
 
         else:
@@ -622,7 +669,14 @@ def modify_lesson(*, context, id):
     <br />
 
     <input type="submit" value="Modify" />
-    </form>"""
+    </form>
+    <br />
+    <form method="POST" style="margin: 0;">
+    <input style="width: 27ch;" type="text" name="confirm-deletion" placeholder="Napiši 'izbriši' da potrdiš izbris." required />
+    <br />
+    <input type="submit" value="Delete" />
+    </form>
+    """
 
 @views.route('/remove-user/<int:id>')
 @login_required
@@ -866,8 +920,7 @@ def tutorstvo(*, context):
     for lesson in Lesson.query.all():
         try:
             if lesson.has_passed() and not lesson.has_counted():
-                for tutor in lesson.get_tutors():
-                    tutor_user = User.query.filter_by(username=tutor).first()
+                for tutor_user in lesson.get_tutor_objs():
                     if tutor_user and lesson.filled >= lesson.min:
                         tutor_user.score += lesson.filled
 
@@ -1065,12 +1118,22 @@ def selectLesson(*, context, id):
         lesson.filled += 1
 
         if lesson.filled == lesson.min:
-            addr = list(filter(None, getEmails(lesson.get_tutors())))
+            for tutor in lesson.get_tutor_objs():
+                subs = PushSubscription.query.filter_by(user_id=tutor.id).all()
+                for sub in subs:
+                    send_notification(sub, f"Tutorstvo ({lesson.subject}) - Ura se bo izvajala", f"Število dijakov prijavljenih na vašo uro {lesson.datetime} je preseglo minimalno mejo.")
 
-            if addr:
-                sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,
+            for user in lesson.get_users(User):
+                if user == current_user(context): continue # Skip the user that caused the number to rise
 
-        Za predmet {lesson.subject} je število učencev preseglo minimalno mejo. To pomeni da se bo ura odvijala.""", f'Tutorstvo - {lesson.subject}')
+                subs = PushSubscription.query.filter_by(user_id=user.id).all()
+                for sub in subs:
+                    send_notification(sub, f"Tutorstvo ({lesson.subject}) - Ura se bo izvajala", f"Ura {lesson.datetime} na katero si prijavljen/a se bo izvajala.")
+
+            # addr = list(filter(None, getEmails(lesson.get_tutors())))
+
+            # if addr:
+            #     sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,\n\nZa predmet {lesson.subject} je število učencev preseglo minimalno mejo. To pomeni da se bo ura odvijala.""", f'Tutorstvo - {lesson.subject}')
 
         db.session.commit()
 
@@ -1094,12 +1157,22 @@ def deselectLesson(*, context, id):
             lesson.filled -= 1
 
             if lesson.filled == lesson.min - 1:
-                addr = list(filter(None, getEmails(lesson.get_tutors())))
+                for tutor in lesson.get_tutor_objs():
+                    subs = PushSubscription.query.filter_by(user_id=tutor.id).all()
+                    for sub in subs:
+                        send_notification(sub, f"Tutorstvo ({lesson.subject}) - Preklicana ura", f"Število dijakov prijavljenih na vašo uro {lesson.datetime} padlo pod minimalno mejo.")
 
-                if addr:
-                    sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,
+                for user in lesson.get_users(User):
+                    if user == current_user(context): continue # Skip the user that caused the number to drop
 
-            Za predmet {lesson.subject} je število učencev spet padlo pod minimalno mejo. To pomeni da se ura ne bo odvijala.""", f'Tutorstvo - {lesson.subject}')
+                    subs = PushSubscription.query.filter_by(user_id=user.id).all()
+                    for sub in subs:
+                        send_notification(sub, f"Tutorstvo ({lesson.subject}) - Preklicana ura", f"Ura {lesson.datetime} na katero si prijavljen/a se ne bo izvajala.")
+
+                # addr = list(filter(None, getEmails(lesson.get_tutors())))
+
+                # if addr:
+                #     sendEmail(f'{lesson.subject}', addr, f"""Pozdravljeni,\n\nZa predmet {lesson.subject} je število učencev spet padlo pod minimalno mejo. To pomeni da se ura ne bo odvijala.""", f'Tutorstvo - {lesson.subject}')
 
             db.session.commit()
 

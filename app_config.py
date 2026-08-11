@@ -1,4 +1,7 @@
 from resources import secrets
+from py_vapid import Vapid02
+from py_vapid.utils import b64urlencode
+from cryptography.hazmat.primitives import serialization
 
 SECRET_KEY = secrets['db']
 AUTHORITY = f"https://login.microsoftonline.com/{secrets['tenant_id']}"
@@ -25,3 +28,10 @@ SQLALCHEMY_BINDS = {
 CACHE_TYPE = 'redis'
 CACHE_REDIS_HOST = 'localhost'
 CACHE_REDIS_PORT = 6379
+
+PUBLIC_KEY = b64urlencode(
+    Vapid02.from_file("private_key.pem").public_key.public_bytes(
+        encoding=serialization.Encoding.X962,
+        format=serialization.PublicFormat.UncompressedPoint
+    )
+)

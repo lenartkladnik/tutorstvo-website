@@ -1,5 +1,6 @@
 **/*.secrets
 **/*.db
+**/*.pem
 **/.venv
 **/flask_session
 **/instance
