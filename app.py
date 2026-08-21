@@ -1,4 +1,4 @@
-from flask import render_template, render_template_string, g
+from flask import render_template, render_template_string, g, send_from_directory
 from waitress import serve
 from extensions import app, scheduler
 from resources import log, DEBUG, FORM_VALIDATION_OFF, secrets, exceptions_dict
@@ -19,6 +19,10 @@ try:
 
         from views import views
         app.register_blueprint(views, url_prefix="/")
+
+        @app.route("/favicon.ico")
+        def favicon_ico():
+            return send_from_directory("static", "favicon.ico")
 
         @app.errorhandler(404)
         def page_not_found(e):

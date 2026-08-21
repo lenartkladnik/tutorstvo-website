@@ -2293,6 +2293,7 @@ input.description {
 
     .faq-container {
         width: calc(100% - 15px);
+        max-width: 100%;
     }
 
     .lb-container {
