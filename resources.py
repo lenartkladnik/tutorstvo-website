@@ -111,7 +111,7 @@ def is_migration_context():
 def log(message: str, log_path: str, log_type: str = 'info'):
     if is_migration_context(): return # Don't log when flask db upgrade is called
 
-    current_time = datetime.now().strftime("%H:%M:%S")
+    current_time = datetime.now().strftime("%d/%m/%y %H:%M:%S")
 
     log_string = f"[{current_time}] {log_type.upper()} \"{log_path}\": {message}"
 

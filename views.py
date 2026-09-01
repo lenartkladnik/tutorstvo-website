@@ -3,7 +3,7 @@ from collections import defaultdict
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g, jsonify
 from werkzeug.security import check_password_hash
 from forms import AdminForm
-from extensions import db, mail, auth, scheduler
+from extensions import app, db, mail, auth, scheduler
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group, PushSubscription
@@ -211,25 +211,27 @@ def login(func):
     else:
         return fake_login(func)
 
-def update_all_years():
-    ensure_stats(StatTypes.best_tutors)
-    stat = Stats.query.filter_by(name=StatTypes.best_tutors).first()
-    stat.value.set(list(get_leaderboard(User, Subject))[:10])
-    stat.year = f"{datetime.now().year - 1}/{datetime.now().year}"
+def update_all_years(by: int = 1):
+    with app.app_context():
+        ensure_stats(StatTypes.best_tutors)
+        stat = Stats.query.filter_by(name=StatTypes.best_tutors).first()
+        stat.set(list(get_leaderboard(User, Subject))[:10])
+        stat.year = f"{datetime.now().year - 1}/{datetime.now().year}"
 
-    for user in User.query.all():
-        full_year = user.get_year()
-        if len(full_year) > 1 and full_year[1].isdigit():
-            y = int(full_year[1]) + 1
-            if y <= 4:
-                user.groups = f'y{y}'
-            user.updated_year = True
+        for user in User.query.all():
+            full_year = user.get_year()
+            if len(full_year) > 1 and full_year[1].isdigit():
+                y = int(full_year[1]) + by
+                if y <= 4:
+                    user.groups = f'y{y}'
+                else:
+                    user.groups = f'disabled'
 
-        user.points = 0
+            user.score = 0
 
-    db.session.commit()
+        db.session.commit()
 
-scheduler.add_job(update_all_years, trigger='cron', year='*', month=9, day=1, week='*', day_of_week='*', hour=0, minute=0, second=0)
+scheduler.add_job(update_all_years, trigger='cron', year='*', month=8, day=31, week='*', day_of_week='*', hour=0, minute=0, second=0)
 
 def login_required(func):
     """
@@ -262,13 +264,33 @@ def login_required(func):
 @views.route('/maintenance/reset_selected_subjects')
 @login_required
 @admin_required
-def reset_selected_subjects(*, context):
-    log("Reseting selected subjects for all users.", "views.reset_selected_subjects", 'MAINTENANCE')
+def maintenance_reset_selected_subjects(*, context):
+    log("Reseting selected subjects for all users.", "views.maintenance_reset_selected_subjects", 'MAINTENANCE')
 
     for user in User.query.all():
         user.selected_subjects = ''
 
     db.session.commit()
+
+    return 'Success'
+
+@views.route('/maintenance/up_all_years')
+@login_required
+@admin_required
+def maintenance_up_all_years(*, context):
+    log("+1 year for every user.", "views.maintenance_up_all_years", 'MAINTENANCE')
+
+    update_all_years()
+
+    return 'Success'
+
+@views.route('/maintenance/down_all_years')
+@login_required
+@admin_required
+def maintenance_down_all_years(*, context):
+    log("-1 year for every user.", "views.maintenance_down_all_years", 'MAINTENANCE')
+
+    update_all_years(-1)
 
     return 'Success'
 
