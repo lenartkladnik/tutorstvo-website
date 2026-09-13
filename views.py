@@ -40,13 +40,17 @@ def remove_references_to_user(uname):
 
     for subject in Subject.query.all():
         try:
-            subject.tutors = ",".join(subject.get_tutors().remove(uname))
+            tutors = subject.get_tutors()
+            tutors.remove(uname)
+            subject.tutors = ",".join(tutors)
         except ValueError:
             pass
 
     for lesson in Lesson.query.all():
         try:
-            lesson.tutors = ", ".join(lesson.get_tutors().remove(uname))
+            tutors = lesson.get_tutors()
+            tutors.remove(uname)
+            lesson.tutors = ", ".join(tutors)
         except ValueError:
             pass
 
