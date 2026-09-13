@@ -1,6 +1,7 @@
 import os
 from collections import defaultdict
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g, jsonify
+from itsdangerous import exc
 from werkzeug.security import check_password_hash
 from forms import AdminForm
 from extensions import app, db, mail, auth, scheduler
@@ -33,6 +34,27 @@ def current_user(ctx) -> User:
         user = new_user
 
     return user
+
+def remove_references_to_user(uname):
+    # Remove all references to user
+
+    for subject in Subject.query.all():
+        try:
+            subject.tutors = ",".join(subject.get_tutors().remove(uname))
+        except ValueError:
+            pass
+
+    for lesson in Lesson.query.all():
+        try:
+            lesson.tutors = ", ".join(lesson.get_tutors().remove(uname))
+        except ValueError:
+            pass
+
+    for comment in Comment.query.all():
+        if comment.by == uname:
+            db.session.delete(comment)
+
+    db.session.commit()
 
 FREE_CLASSROOMS_CSV = 'ucilnice.csv'
 DEFAULT_DEBUG_USER = 'Debug User'
@@ -291,6 +313,14 @@ def maintenance_down_all_years(*, context):
     log("-1 year for every user.", "views.maintenance_down_all_years", 'MAINTENANCE')
 
     update_all_years(-1)
+
+    return 'Success'
+
+@views.route('/maintenance/remove_user_ref/<str:name>')
+@login_required
+@admin_required
+def maintenance_remove_user_ref(name):
+    remove_references_to_user(name)
 
     return 'Success'
 
@@ -712,12 +742,15 @@ def remove_user(*, context, id):
 
     uname = user.username
     email = user.email
+    id = user.id
 
     db.session.delete(user)
 
+    remove_references_to_user(uname)
+
     db.session.commit()
 
-    log(f"Remove user {uname} ({email}).", "views.remove_user")
+    log(f"Remove user {uname} ({email}) [{id}].", "views.remove_user")
 
     return redirect(safe_redirect(request.referrer))
 
