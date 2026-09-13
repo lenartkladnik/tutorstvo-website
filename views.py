@@ -319,7 +319,7 @@ def maintenance_down_all_years(*, context):
 @views.route('/maintenance/remove_user_ref/<string:name>')
 @login_required
 @admin_required
-def maintenance_remove_user_ref(name):
+def maintenance_remove_user_ref(*, context, name):
     remove_references_to_user(name)
 
     return 'Success'
