@@ -33,6 +33,11 @@
                 <input type="radio" id="y4" name="year" value="y4" {{ 'checked' if managed_user.get_year() == 'y4' else '' }}>
                 <label for="y4">4. Letnik</label>
             </div>
+            <br />
+            <div class="selection-input">
+                <input type="radio" id="prof" name="year" value="prof" {{ 'checked' if managed_user.get_year() == 'prof' else '' }}>
+                <label for="prof">Prof</label>
+            </div>
         </div>
 
         <br />
