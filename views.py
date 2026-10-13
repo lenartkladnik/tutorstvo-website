@@ -8,7 +8,7 @@ from extensions import app, db, mail, auth, scheduler
 from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group, PushSubscription
-from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, ALLOWED_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, send_notification, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data, exceptions_dict
+from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, CHOSABLE_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, send_notification, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data, exceptions_dict
 from app_config import PUBLIC_KEY
 from datetime import datetime, timedelta
 import csv
@@ -1324,7 +1324,7 @@ def remove_learning_resource(*, context):
 def select_group(*, context):
     form = request.form
 
-    if form and validate_form(form, ('group', lambda x: x in ALLOWED_GROUPS), getter="get"):
+    if form and validate_form(form, ('group', lambda x: x in CHOSABLE_GROUPS), getter="get"):
         group = form.get('group')
         current_user(context).groups = group
         db.session.commit()
@@ -1429,7 +1429,7 @@ def remove_lesson_request(*, context, id):
         db.session.delete(comment)
         db.session.commit()
 
-    return redirect(url_for('views.request-lesson'))
+    return redirect(url_for('views.request_lesson'))
 
 @views.route("/faq")
 @login_required

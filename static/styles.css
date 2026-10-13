@@ -1844,11 +1844,11 @@ input.description {
 .request-lesson-text {
     position: relative;
 
-    font-size: 48px;
+    font-size: 38px;
     color: var(--text-color);
 
     margin: 20px;
-    left: 80px;
+    left: 10px;
 }
 
 .request-lesson-data {
@@ -1873,6 +1873,8 @@ input.description {
 .extra-info {
     position: relative;
     display: block;
+
+    font-size: 10pt;
 
     width: fit-content;
     height: fit-content;

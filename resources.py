@@ -13,7 +13,8 @@ DATETIME_FORMAT_JS = "%Y/%d/%m"
 DATETIME_FORMAT_PY = '%d-%m-%Y'
 DATETIME_FORMAT_USER = '%d/%m/%Y'
 
-ALLOWED_GROUPS = ['y1', 'y2', 'y3', 'y4']
+CHOSABLE_GROUPS = ['y1', 'y2', 'y3', 'y4']
+ALLOWED_GROUPS = ['y1', 'y2', 'y3', 'y4', 'prof']
 HUMAN_READABLE_GROUPS = {'y1': '1. Letnik', 'y2': '2. Letnik', 'y3': '3. Letnik', 'y4': '4. Letnik', 'prof': 'Prof'}
 
 exceptions_dict = {}

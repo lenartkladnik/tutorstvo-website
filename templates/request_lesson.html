@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="main">
-    <span class="request-lesson-text">USTVARI PROŠNJO</span>
+    <span class="request-lesson-text">Nova prošnja</span>
     <form class="subject-box request-lesson-box" action="/request-lesson" method="POST" autocomplete="off">
         <div class="subject-box-grid request-lesson-box-grid">
             <div style="display: flex; height: 0;">
@@ -75,7 +75,7 @@
                 {% if comment.content.strip() %}
                 <span>&bull; {{ comment.content.strip().rsplit(', ', 1)[0] }}</span>
                 <br>
-                <span class="extra-info">{{ comment.by + ', ' if current_user.is_admin else '' }}{{ comment.content.strip().rsplit(', ', 1)[1] }}</span>
+                <span class="extra-info">{{ comment.by + ', ' if current_user.is_admin else '' }}{{ comment.content.strip().rsplit(', ', 1)[1] }} ({{ comment.created_at.strftime("%x") }})</span>
                 {% if comment.by == current_user.username %}
                 <form action="/remove-lesson-request/{{ comment.id }}">
                     <input type="image" src="{{ url_for('static', filename='trash.svg') }}">
