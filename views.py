@@ -291,7 +291,7 @@ def login_required(func):
 @login_required
 @admin_required
 def maintenance_reset_selected_subjects(*, context):
-    log("Reseting selected subjects for all users.", "views.maintenance_reset_selected_subjects", 'MAINTENANCE')
+    log("Resetting selected subjects for all users.", "views.maintenance_reset_selected_subjects", 'MAINTENANCE')
 
     for user in User.query.all():
         user.selected_subjects = ''
@@ -499,12 +499,12 @@ def adminPanel(*, context):
 
         return redirect(url_for('views.adminPanel'))
 
+    users = User.query.filter(User.groups != 'disabled').all() # Ignore disabled users
     admins = User.query.filter_by(role="admin").all()
-    tutors = [user for user in User.query.all() if user.is_tutor()]
+    tutors = [user for user in users if user.is_tutor()]
     subjects = Subject.query.all()
     groups = [group.name for group in Group.query.all()]
     group_ids = [group.id for group in Group.query.all()]
-    users = User.query.all()
 
     manage_user_id = session.pop('manage_user_id', None)
     remove_user_id = session.pop('remove_user_id', None)
@@ -573,7 +573,7 @@ def adminPanel(*, context):
     else:
         users_filtered = users
 
-    all_potential_tutors = [user for user in User.query.all() if user.applied_subjects]
+    all_potential_tutors = [user for user in users if user.applied_subjects]
 
     tutors_zip = list(zip(list(map(lambda tutor: tutor.tutor_for(), tutors)), tutors))
 
@@ -1165,6 +1165,9 @@ def tutorstvo(*, context):
 @views.route('/tutorstvo/add/<int:id>')
 @login_required
 def selectLesson(*, context, id):
+    if not current_user(context).groups[1].isdigit(): # Only y1, y2, y3, y4 don't pass this test
+        return # Ignore groups such as prof and disabled
+
     lesson = Lesson.query.get(id)
 
     if lesson and \

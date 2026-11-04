@@ -25,7 +25,7 @@ SQLALCHEMY_BINDS = {
     'groups': 'sqlite:///groups.db?timeout=30'
 }
 
-CACHE_TYPE = 'redis'
+CACHE_TYPE = 'flask_caching.backends.rediscache.RedisCache' # 'redis'
 CACHE_REDIS_HOST = 'localhost'
 CACHE_REDIS_PORT = 6379
 
