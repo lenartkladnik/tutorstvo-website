@@ -356,6 +356,15 @@ def maintenance_remove_user_ref(*, context, name):
 
     return 'Success'
 
+@views.route('/maintenance/login_as/<string:email>')
+@login_required
+@admin_required
+def maintenance_login_as(*, context, email):
+    current_user(context).login_as = email
+    db.session.commit()
+
+    return safe_redirect(url_for('views.home'))
+
 # Debug routes
 
 @views.route('/new_user')
