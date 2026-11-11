@@ -15,7 +15,7 @@ try:
         if FORM_VALIDATION_OFF:
             log(f"Running with form validation disabled, DO NOT RUN IN A PRODUCTION ENVIRONMENT!", "app", "warning")
 
-        log("Sarting server", "app")
+        log("Starting server", "app")
 
         from views import views
         app.register_blueprint(views, url_prefix="/")
@@ -40,7 +40,7 @@ try:
 
             exceptions_dict.update({code: tb})
 
-            log(f"Exception occured: {tb}", "handle_exception", "error")
+            log(f"Exception occurred: {tb}", "handle_exception", "error")
 
             try:
                 if g.context and current_user(g.context).is_admin():

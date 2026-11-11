@@ -17,6 +17,8 @@ MAIL_USE_TLS = True
 MAIL_USERNAME = secrets['mail-username']
 MAIL_PASSWORD = secrets['mail-password']
 
+GRAPH_API_TOKEN = secrets['ms_graph_api_access_token']
+
 SQLALCHEMY_DATABASE_URI = 'sqlite:///users.db?timeout=30'
 SQLALCHEMY_BINDS = {
     'users': 'sqlite:///users.db?timeout=30',

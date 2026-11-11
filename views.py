@@ -1,7 +1,7 @@
 import os
 from collections import defaultdict
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, current_app, g, jsonify
-from itsdangerous import exc
+import requests
 from werkzeug.security import check_password_hash
 from forms import AdminForm
 from extensions import app, db, mail, auth, scheduler
@@ -9,7 +9,7 @@ from flask_mail import Message
 from functools import wraps
 from models import Comment, LessonRequest, Stats, User, Subject, Lesson, Group, PushSubscription
 from resources import DATETIME_FORMAT_JS, DATETIME_FORMAT_PY, CHOSABLE_GROUPS, FORM_VALIDATION_OFF, HUMAN_READABLE_GROUPS, StatTypes, formatTitle, get_leaderboard, is_mobile, is_tablet, isnumber, secrets, log, debug_only, DEBUG, send_notification, validate_form, validate_form_reason, get_free_for_date, parse_hour, safe_redirect, classroom_data, exceptions_dict
-from app_config import PUBLIC_KEY
+from app_config import PUBLIC_KEY, GRAPH_API_TOKEN
 from datetime import datetime, timedelta
 import csv
 import random
@@ -18,7 +18,28 @@ import json
 
 views = Blueprint('views', __name__)
 
-def current_user(ctx) -> User:
+def get_user_group(email):
+    uri = f"https://graph.microsoft.com/v1.0/users?$search=\"mail:{email}\"&$select=jobTitle" # eg.: 3. (Also possible companyName (eg.: B))
+    r = requests.get(uri, headers={
+        "Authorization": f"Bearer {GRAPH_API_TOKEN}",
+        "ConsistencyLevel": "eventual"
+    })
+
+    json_r = json.loads(r.content)
+    values = json_r["value"]
+    if len(values) > 0:
+        year = values[0]["jobTitle"]
+
+        if year:
+            if year[0].isdigit():
+                return "y" + year[:-1]
+
+            elif year == "TODO": # TODO: year == ?
+                return "prof"
+
+    return "disabled"
+
+def current_user(ctx, clear_login_as: bool = False) -> User:
     username = ctx["user"].get("name")
     email = ctx["user"].get("preferred_username")
 
@@ -32,6 +53,13 @@ def current_user(ctx) -> User:
         log(f"Created new user entry with {username=}, {email=}.", "views.current_user")
 
         user = new_user
+
+    if (clear_login_as):
+        user.login_as = None
+        db.session.commit()
+
+    if (user.is_admin() and user.login_as):
+        user = User.query.filter_by(email=user.login_as)
 
     return user
 
@@ -269,7 +297,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         context = kwargs.get('context')
         g.context = context
-        user = current_user(context)
+        user = current_user(context, clear_login_as=True)
         if user.is_rejected() and user.rejection_expired():
             user.accept()
             db.session.commit()

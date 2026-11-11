@@ -35,6 +35,7 @@ class User(db.Model):
     tutoring_subjects = db.Column(db.String(200), default='', nullable=False)
     issues = db.Column(db.Integer, default=0)
     updated_year = db.Column(db.Boolean, nullable=True)
+    login_as = db.Column(db.String, default=None, nullable=True)
 
     def has_notifications(self) -> bool:
         return db.session.query(PushSubscription.query.filter_by(user_id=self.id).exists()).scalar()
