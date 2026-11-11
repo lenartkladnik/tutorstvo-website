@@ -4,6 +4,7 @@
 **/.venv
 **/flask_session
 **/instance
+**/migrations
 **/__pycache__/
 **/node_modules/
 **/.parcel-cache/
