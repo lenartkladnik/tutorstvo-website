@@ -59,7 +59,7 @@ def current_user(ctx, clear_login_as: bool = False) -> User:
         db.session.commit()
 
     if (user.is_admin() and user.login_as):
-        user = User.query.filter_by(email=user.login_as)
+        user = User.query.filter_by(email=user.login_as).first()
 
     return user
 
