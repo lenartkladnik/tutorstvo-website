@@ -297,7 +297,7 @@ def login_required(func):
     def wrapper(*args, **kwargs):
         context = kwargs.get('context')
         g.context = context
-        user = current_user(context, clear_login_as=True)
+        user = current_user(context)
         if user.is_rejected() and user.rejection_expired():
             user.accept()
             db.session.commit()
@@ -486,6 +486,7 @@ def toggleDarkMode(*, context):
 @views.route("/logout")
 @login_required
 def logout(*, context):
+    current_user(context, clear_login_as=True)
     return redirect(url_for('identity.logout'))
 
 @views.route('/admin', methods=['GET', 'POST'])
