@@ -57,9 +57,12 @@ def current_user(ctx, clear_login_as: bool = False) -> User:
     if (clear_login_as):
         user.login_as = None
         db.session.commit()
+        log(f"Cleared login as for '{user.email}'", "views.current_user")
 
     if (user.is_admin() and user.login_as):
-        user = User.query.filter_by(email=user.login_as).first()
+        new_user = User.query.filter_by(email=user.login_as).first()
+        if (new_user):
+            user = new_user
 
     return user
 
@@ -486,8 +489,14 @@ def toggleDarkMode(*, context):
 @views.route("/logout")
 @login_required
 def logout(*, context):
-    current_user(context, clear_login_as=True)
     return redirect(url_for('identity.logout'))
+
+@views.route("/clear-login-as")
+@login_required
+def login_as_clear(*, context):
+    current_user(context, clear_login_as=True)
+
+    return 'Success'
 
 @views.route('/admin', methods=['GET', 'POST'])
 @login_required
