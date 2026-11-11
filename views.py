@@ -360,10 +360,12 @@ def maintenance_remove_user_ref(*, context, name):
 @login_required
 @admin_required
 def maintenance_login_as(*, context, email):
+    log(f"'{current_user(context).email}' has logged in as '{email}'.", 'MAINTENANCE')
+
     current_user(context).login_as = email
     db.session.commit()
 
-    return safe_redirect(url_for('views.home'))
+    return 'Success'
 
 # Debug routes
 
